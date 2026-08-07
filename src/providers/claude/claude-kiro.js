@@ -670,6 +670,7 @@ export class KiroApiService {
         this.modelName = KIRO_CONSTANTS.DEFAULT_MODEL_NAME;
         this.axiosInstance = null; // Initialize later in async method
         this.axiosSocialRefreshInstance = null;
+        this._tokenRefreshPromise = null;
     }
  
     async initialize() {
@@ -846,22 +847,40 @@ async initializeAuth(forceRefresh = false) {
         return;
     }
 
-    // 首先执行基础凭证加载
-    await this.loadCredentials();
-
-    // 只有在明确要求强制刷新，或者 AccessToken 确实缺失时，才执行刷新
-    // 注意：在 V2 架构下，此方法主要由 PoolManager 的后台队列调用
-    if (forceRefresh || (!this.accessToken && this.refreshToken)) {
-        if (!this.refreshToken) {
-            throw new Error('No refresh token available to refresh access token.');
-        }
-
-        const tokenFilePath = this.credsFilePath || path.join(this.credPath, KIRO_AUTH_TOKEN_FILE);
-        await this._doTokenRefresh(this.saveCredentialsToFile.bind(this), tokenFilePath);
+    if (this._tokenRefreshPromise) {
+        await this._tokenRefreshPromise;
+        return;
     }
 
-    if (!this.accessToken) {
-        throw new Error('No access token available after initialization and refresh attempts.');
+    const authOperation = (async () => {
+        // Credential loading belongs to the single-flight operation. Otherwise,
+        // a concurrent caller can reload an expired token while refresh is
+        // writing the new token and overwrite the fresh in-memory value.
+        await this.loadCredentials();
+
+        // 只有在明确要求强制刷新，或者 AccessToken 确实缺失时，才执行刷新
+        // 注意：在 V2 架构下，此方法主要由 PoolManager 的后台队列调用
+        if (forceRefresh || (!this.accessToken && this.refreshToken)) {
+            if (!this.refreshToken) {
+                throw new Error('No refresh token available to refresh access token.');
+            }
+
+            const tokenFilePath = this.credsFilePath || path.join(this.credPath, KIRO_AUTH_TOKEN_FILE);
+            await this._doTokenRefresh(this.saveCredentialsToFile.bind(this), tokenFilePath);
+        }
+
+        if (!this.accessToken) {
+            throw new Error('No access token available after initialization and refresh attempts.');
+        }
+    })();
+
+    this._tokenRefreshPromise = authOperation;
+    try {
+        await authOperation;
+    } finally {
+        if (this._tokenRefreshPromise === authOperation) {
+            this._tokenRefreshPromise = null;
+        }
     }
 }
 
@@ -2228,11 +2247,7 @@ async saveCredentialsToFile(filePath, newData) {
             delete requestBody._requestBaseUrl;
         }
         
-        // 检查 token 是否即将过期，如果是则推送到刷新队列
-        if (this.isExpiryDateNear()) {
-            logger.info('[Kiro] Token is near expiry, marking credential as need refresh...');
-            this._markCredentialNeedRefresh('Token near expiry in generateContent');
-        }
+        await this._prepareAccessTokenForRequest('generateContent');
         
         const finalModel = resolveKiroModel(model, this.config);
         logger.info(`[Kiro] Calling generateContent with model: ${finalModel}`);
@@ -2624,11 +2639,7 @@ async saveCredentialsToFile(filePath, newData) {
             delete requestBody._requestBaseUrl;
         }
         
-        // 检查 token 是否即将过期，如果是则推送到刷新队列
-        if (this.isExpiryDateNear()) {
-            logger.info('[Kiro] Token is near expiry, marking credential as need refresh...');
-            this._markCredentialNeedRefresh('Token near expiry in generateContentStream');
-        }
+        await this._prepareAccessTokenForRequest('generateContentStream');
         
         const finalModel = resolveKiroModel(model, this.config);
         logger.info(`[Kiro] Calling generateContentStream with model: ${finalModel} (real streaming)`);
@@ -3458,13 +3469,28 @@ async saveCredentialsToFile(filePath, newData) {
         try {
             if (!this.expiresAt) return true;
             const expirationTime = new Date(this.expiresAt);
+            const expirationMs = expirationTime.getTime();
+            if (!Number.isFinite(expirationMs)) return true;
             const currentTime = new Date();
             // 给 30 秒缓冲，避免请求过程中过期
             const bufferMs = 30 * 1000;
-            return expirationTime.getTime() <= (currentTime.getTime() + bufferMs);
+            return expirationMs <= (currentTime.getTime() + bufferMs);
         } catch (error) {
             logger.error(`[Kiro] Error checking token expiry: ${error.message}`);
             return true; // Treat as expired if parsing fails
+        }
+    }
+
+    async _prepareAccessTokenForRequest(context) {
+        if (this.isTokenExpired()) {
+            logger.info(`[Kiro] Token expired before ${context}, refreshing synchronously...`);
+            await this.initializeAuth(true);
+            return;
+        }
+
+        if (this.isExpiryDateNear()) {
+            logger.info('[Kiro] Token is near expiry, marking credential as need refresh...');
+            this._markCredentialNeedRefresh(`Token near expiry in ${context}`);
         }
     }
 
