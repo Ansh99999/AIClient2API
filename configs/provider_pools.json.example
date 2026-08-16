@@ -132,7 +132,7 @@
     {
       "customName": "Claude节点1",
       "CLAUDE_API_KEY": "sk-claude-key1",
-      "CLAUDE_BASE_URL": "https://api.anthropic.com",
+      "CLAUDE_BASE_URL": "https://api.anthropic.com/v1",
       "checkModelName": null,
       "checkHealth": false,
       "uuid": "bb87047a-3b1d-4249-adbb-1087ecd58128",
@@ -146,7 +146,7 @@
     {
       "customName": "Claude节点2",
       "CLAUDE_API_KEY": "sk-claude-key2",
-      "CLAUDE_BASE_URL": "https://api.anthropic.com",
+      "CLAUDE_BASE_URL": "https://api.anthropic.com/v1",
       "checkModelName": null,
       "checkHealth": false,
       "uuid": "7c2002c6-122a-4db0-af06-8a0ff433801a",

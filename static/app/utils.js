@@ -357,7 +357,7 @@ function getProviderTypeFields(providerType) {
                 id: 'CLAUDE_BASE_URL',
                 label: 'Claude Base URL',
                 type: 'text',
-                placeholder: 'https://api.anthropic.com'
+                placeholder: 'https://api.anthropic.com/v1'
             }
         ],
         'gemini-cli-oauth': [

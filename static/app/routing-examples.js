@@ -340,7 +340,9 @@ async function copyCurlExample(provider, options = {}) {
     }
     
     const { protocol = 'openai', model = 'default-model', message = 'Hello!' } = options;
-    const path = route.paths[protocol];
+    const path = protocol === 'responses'
+        ? `/${provider}/v1/responses`
+        : route.paths[protocol];
     
     if (!path) {
         showToast(t('common.error'), t('common.error'), 'error');
@@ -357,7 +359,16 @@ async function copyCurlExample(provider, options = {}) {
     const baseProviderId = routes.find(r => provider.startsWith(r.provider))?.provider || provider;
     
     // 根据不同提供商和协议生成对应的curl命令
-    switch (baseProviderId) {
+    if (protocol === 'responses') {
+        curlCommand = `curl ${hostname}${path} \\
+  -H "Content-Type: application/json" \\
+  -H "Authorization: Bearer YOUR_API_KEY" \\
+  -d '{
+    "model": "${model}",
+    "input": "${message}",
+    "max_output_tokens": 1000
+  }'`;
+    } else switch (baseProviderId) {
         case 'claude-custom':
         case 'claude-kiro-oauth':
             if (protocol === 'openai') {

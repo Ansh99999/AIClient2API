@@ -4,7 +4,7 @@
 
 # AIClient2API（A2）🚀
 
-**A powerful proxy that can unify the requests of various client-only large model APIs (Gemini CLI, Antigravity, Codex, Grok, Kiro ...), simulate requests, and encapsulate them into a local OpenAI-compatible interface.**
+**A powerful proxy that can unify the requests of various client-only large model APIs (Antigravity, Codex, Grok, Kiro ...), simulate requests, and encapsulate them into a local OpenAI-compatible interface.**
 
 </div>
 
@@ -193,7 +193,7 @@
 >   - Configuration: Add `PROVIDER_POOLS_FILE_PATH` parameter in `configs/config.json`
 >   - Reference configuration: [provider_pools.json](./configs/provider_pools.json.example)
 > - **History Developed**
->   - Support Gemini CLI, Kiro and other client2API
+>   - Support Gemini , Kiro and other client2API
 >   - OpenAI, Claude, Gemini three-protocol mutual conversion, automatic intelligent switching
 > </details>
 
@@ -267,12 +267,12 @@ The most recommended way to use AIClient2API is to start it through an automated
 #### 🐳 Docker Quick Start (Recommended)
 
 ```bash
-docker run -d -p 3000:3000 -p 8085-8086:8085-8086 -p 1455:1455 -p 56121:56121 -p 19876-19880:19876-19880 --restart=always -v "your_path/configs:/app/configs" -v "your_path/plugins:/app/src/plugins-user" --name aiclient2api justlikemaki/aiclient-2-api
+docker run -d -p 3000:3000 -p 8086:8086 -p 1455:1455 -p 56121:56121 -p 19876-19880:19876-19880 --restart=always -v "your_path/configs:/app/configs" -v "your_path/plugins:/app/src/plugins-user" --name aiclient2api justlikemaki/aiclient-2-api
 ```
 
 **Parameter Description**:
 - `-d`: Run container in background
-- `-p 3000:3000 ...`: Port mapping. 3000 is for Web UI, others are for OAuth callbacks (Gemini: 8085, Antigravity: 8086, Codex: 1455, Grok CLI: 56121, Kiro: 19876-19880)
+- `-p 3000:3000 ...`: Port mapping. 3000 is for Web UI, others are for OAuth callbacks (Antigravity: 8086, Codex: 1455, Grok CLI: 56121, Kiro: 19876-19880)
 - `--restart=always`: Container auto-restart policy
 - `-v "your_path/configs:/app/configs"`: Mount configuration directory (replace "your_path" with actual path, e.g., `/home/user/aiclient2api`)
 - `-v "your_path/plugins:/app/src/plugins-user"`: Mount user plugins directory
@@ -399,15 +399,10 @@ Seamlessly support the following latest large models, just configure the corresp
 
 #### 🌐 Web UI Quick Authorization (Recommended)
 In the Web UI management interface, you can complete authorization configuration rapidly:
-1. **Generate Authorization**: On the **"Provider Pools"** page or **"Configuration"** page, click the **"Generate Authorization"** button in the upper right corner of the corresponding provider (e.g., Gemini).
-2. **Scan/Login**: An authorization dialog will pop up, you can click **"Open in Browser"** for login verification. For Gemini and Antigravity, complete the Google account authorization.
+1. **Generate Authorization**: On the **"Provider Pools"** page or **"Configuration"** page, click the **"Generate Authorization"** button in the upper right corner of the corresponding provider (e.g., Codex).
+2. **Scan/Login**: An authorization dialog will pop up, you can click **"Open in Browser"** for login verification. For Antigravity, complete the Google account authorization.
 3. **Auto-Save**: After successful authorization, the system will automatically obtain credentials and save them to the corresponding directory in `configs/`. You can see the newly generated credentials on the **"Config Files"** page.
 4. **Visual Management**: You can upload or delete credentials at any time in the Web UI, or use the **"Quick Associate"** function to bind existing credential files to providers with one click.
-
-#### Gemini CLI OAuth Configuration
-1. **Obtain OAuth Credentials**: Visit [Google Cloud Console](https://console.cloud.google.com/) to create a project and enable Gemini API
-2. **Project Configuration**: You may need to provide a valid Google Cloud project ID, which can be specified via the startup parameter `--project-id`
-3. **Ensure Project ID**: When configuring in the Web UI, ensure the project ID entered matches the project ID displayed in the Google Cloud Console and Gemini CLI.
 
 #### Antigravity OAuth Configuration
 1. **Personal Account**: Personal accounts require separate authorization, application channels have been closed.
@@ -498,7 +493,6 @@ Default storage locations for authorization credential files of each service:
 
 | Service | Default Path | Description |
 |------|---------|------|
-| **Gemini** | `~/.gemini/oauth_creds.json` | OAuth authentication credentials |
 | **Kiro** | `~/.aws/sso/cache/kiro-auth-token.json` | Kiro authentication token |
 | **Antigravity** | `~/.antigravity/oauth_creds.json` | Antigravity OAuth credentials (supports Claude Opus) |
 | **Codex** | `~/.codex/oauth_creds.json` | Codex OAuth credentials |
@@ -538,7 +532,6 @@ This project supports flexible proxy configuration, allowing you to configure a 
    {
      "PROXY_URL": "http://127.0.0.1:7890",
       "PROXY_ENABLED_PROVIDERS": [
-        "gemini-cli-oauth",
         "gemini-antigravity",
         "claude-kiro-oauth",
         "grok-web"
@@ -554,7 +547,7 @@ This project supports flexible proxy configuration, allowing you to configure a 
    ```json
    {
      "OPENAI_BASE_URL": "https://your-proxy-endpoint.com/v1",
-     "CLAUDE_BASE_URL": "https://your-proxy-endpoint.com"
+     "CLAUDE_BASE_URL": "https://your-proxy-endpoint.com/v1"
    }
    ```
 
@@ -581,7 +574,7 @@ Support excluding unsupported models through `notSupportedModels` configuration,
 
 ```json
 {
-  "gemini-cli-oauth": [
+  "gemini-antigravity": [
     {
       "uuid": "provider-1",
       "notSupportedModels": ["gemini-3.0-pro", "gemini-3.5-flash"],
@@ -601,15 +594,13 @@ Support excluding unsupported models through `notSupportedModels` configuration,
 
 #### 3. Cross-Type Fallback Configuration
 
-When all accounts under a Provider Type (e.g., `gemini-cli-oauth`) are exhausted due to 429 quota limits or marked as unhealthy, the system can automatically fallback to another compatible Provider Type (e.g., `gemini-antigravity`) instead of returning an error directly.
+When all accounts under a Provider Type (e.g., `claude-kiro-oauth`) are exhausted due to 429 quota limits or marked as unhealthy, the system can automatically fallback to another compatible Provider Type (e.g., `claude-custom`) instead of returning an error directly.
 
 **Configuration**: Add `providerFallbackChain` configuration in `configs/config.json`:
 
 ```json
 {
   "providerFallbackChain": {
-    "gemini-cli-oauth": ["gemini-antigravity"],
-    "gemini-antigravity": ["gemini-cli-oauth"],
     "claude-kiro-oauth": ["claude-custom"],
     "claude-custom": ["claude-kiro-oauth"]
   }
@@ -622,7 +613,7 @@ When all accounts under a Provider Type (e.g., `gemini-cli-oauth`) are exhausted
    - Look up the configured fallback types
    - Check if the fallback type supports the requested model (protocol compatibility check)
    - Select a healthy account from the fallback type's pool
-3. Supports multi-level degradation chains: `gemini-cli-oauth → gemini-antigravity → openai-custom`
+3. Supports multi-level degradation chains: `claude-kiro-oauth → claude-custom → openai-custom`
 4. Only returns an error if all fallback types are also unavailable
 
 **Use Cases**:
@@ -680,7 +671,7 @@ For services like Grok that strictly validate TLS fingerprints (JA3/JA4), this p
 
 **Solutions**:
 - **Check Network Connection**: Ensure you can access Google, Alibaba Cloud, and other services normally
-- **Check Port Occupation**: OAuth callbacks require specific ports (Gemini: 8085, Antigravity: 8086, Codex: 1455, Grok CLI: 56121, Kiro: 19876-19880), ensure these ports are not occupied
+- **Check Port Occupation**: OAuth callbacks require specific ports (Antigravity: 8086, Codex: 1455, Grok CLI: 56121, Kiro: 19876-19880), ensure these ports are not occupied
 - **Clear Browser Cache**: Try using incognito mode or clearing browser cache and retry
 - **Check Firewall Settings**: Ensure the firewall allows access to local callback ports
 - **Docker Users**: Ensure all OAuth callback ports are correctly mapped
@@ -844,8 +835,6 @@ The system only performs auto-refresh tasks for providers that are **loaded into
 This project follows the [**GNU General Public License v3 (GPLv3)**](https://www.gnu.org/licenses/gpl-3.0) license. For details, please check the `LICENSE` file in the root directory.
 
 ## 🙏 Acknowledgements
-
-The development of this project was greatly inspired by the official Google Gemini CLI and referenced part of the code implementation of `gemini-cli.ts` in Cline 3.18.0. Sincere thanks to the Google official team and the Cline development team for their excellent work!
 
 ### Contributor List
 

@@ -4,7 +4,7 @@
 
 # AIClient2API（A2）🚀
 
-**複数のクライアント専用大規模言語モデルAPI（Gemini CLI、Antigravity、Codex, Grok、Kiro ...）を模擬リクエストし、ローカルのOpenAI互換インターフェースに統一的にラッピングする強力なプロキシ。**
+**複数のクライアント専用大規模言語モデルAPI（Antigravity、Codex, Grok、Kiro ...）を模擬リクエストし、ローカルのOpenAI互換インターフェースに統一的にラッピングする強力なプロキシ。**
 
 </div>
 
@@ -193,7 +193,7 @@
 >   - 設定方法：config.jsonに`PROVIDER_POOLS_FILE_PATH`パラメータを追加
 >   - 参考設定：[provider_pools.json](./configs/provider_pools.json.example)
 > - **開発済み履歴**
->   - Gemini CLI、Kiroなどのクライアント2APIをサポート
+>   - Gemini 、Kiroなどのクライアント2APIをサポート
 >   - OpenAI、Claude、Geminiの3つのプロトコル相互変換、自動インテリジェント切り替え
 > </details>
 
@@ -267,12 +267,12 @@ AIClient2APIを使い始める最も推奨される方法は、自動起動ス�
 #### 🐳 Docker クイックスタート (推奨)
 
 ```bash
-docker run -d -p 3000:3000 -p 8085-8086:8085-8086 -p 1455:1455 -p 56121:56121 -p 19876-19880:19876-19880 --restart=always -v "指定パス/configs:/app/configs" -v "指定パス/plugins:/app/src/plugins-user" --name aiclient2api justlikemaki/aiclient-2-api
+docker run -d -p 3000:3000 -p 8086:8086 -p 1455:1455 -p 56121:56121 -p 19876-19880:19876-19880 --restart=always -v "指定パス/configs:/app/configs" -v "指定パス/plugins:/app/src/plugins-user" --name aiclient2api justlikemaki/aiclient-2-api
 ```
 
 **パラメータ説明**：
 - `-d`：バックグラウンドでコンテナを実行
-- `-p 3000:3000 ...`：ポートマッピング。3000はWeb UI用、その他はOAuthコールバック用（Gemini: 8085, Antigravity: 8086, Codex: 1455, Grok CLI: 56121, Kiro: 19876-19880）
+- `-p 3000:3000 ...`：ポートマッピング。3000はWeb UI用、その他はOAuthコールバック用（Antigravity: 8086, Codex: 1455, Grok CLI: 56121, Kiro: 19876-19880）
 - `--restart=always`：コンテナ自動再起動ポリシー
 - `-v "指定パス/configs:/app/configs"`：設定ディレクトリをマウント（「指定パス」を実際のパスに置き換えてください、例：`/home/user/aiclient2api`）
 - `-v "指定パス/plugins:/app/src/plugins-user"`：ユーザープラグインディレクトリをマウント
@@ -399,15 +399,10 @@ docker compose up -d
 
 #### 🌐 Web UI クイック認証 (推奨)
 Web UI管理インターフェースでは、極めて迅速に認証設定を完了できます：
-1. **認証の生成**：**「プロバイダープール」** ページまたは **「設定管理」** ページで、対応するプロバイダー（Geminiなど）の右上にある **「認証生成」** ボタンをクリックします。
-2. **スキャン/ログイン**：認証ダイアログが表示されるので、**「ブラウザで開く」** をクリックしてログイン検証を行います。Gemini、Antigravityの場合はGoogleアカウントの認証を完了させます。
+1. **認証の生成**：**「プロバイダープール」** ページまたは **「設定管理」** ページで、対応するプロバイダー（Codexなど）の右上にある **「認証生成」** ボタンをクリックします。
+2. **スキャン/ログイン**：認証ダイアログが表示されるので、**「ブラウザで開く」** をクリックしてログイン検証を行います。Antigravityの場合はGoogleアカウントの認証を完了させます。
 3. **自動保存**：認証成功後、システムは自動的に資格情報を取得し、`configs/` の対応するディレクトリに保存します。**「設定ファイル」** ページで新しく生成された資格情報を確認できます。
 4. **ビジュアル管理**：Web UIでいつでも資格情報のアップロードや削除、または **「クイック関連付け」** 機能を使用して既存の資格情報ファイルをワンクリックでプロバイダーにバインドできます。
-
-#### Gemini CLI OAuth設定
-1. **OAuth認証情報の取得**：[Google Cloud Console](https://console.cloud.google.com/)にアクセスしてプロジェクトを作成し、Gemini APIを有効化
-2. **プロジェクト設定**：有効なGoogle CloudプロジェクトIDを提供する必要があり、起動パラメータ`--project-id`で指定可能
-3. **プロジェクトIDの確認**：Web UIで設定する際、入力したプロジェクトIDが Google Cloud Console および Gemini CLI で表示されるプロジェクトIDと一致していることを確認してください。
 
 #### Antigravity OAuth設定
 1. **個人アカウント**：個人アカウントは個別に認証が必要ですが、申請チャンネルは閉鎖されています。
@@ -498,7 +493,6 @@ curl http://localhost:3000/claude-kiro-oauth/v1/chat/completions \
 
 | サービス | デフォルトパス | 説明 |
 |------|---------|------|
-| **Gemini** | `~/.gemini/oauth_creds.json` | OAuth認証情報 |
 | **Kiro** | `~/.aws/sso/cache/kiro-auth-token.json` | Kiro認証トークン |
 | **Antigravity** | `~/.antigravity/oauth_creds.json` | Antigravity OAuth認証情報 (Claude Opus サポート) |
 | **Codex** | `~/.codex/oauth_creds.json` | Codex OAuth認証情報 |
@@ -538,7 +532,6 @@ curl http://localhost:3000/claude-kiro-oauth/v1/chat/completions \
    {
      "PROXY_URL": "http://127.0.0.1:7890",
       "PROXY_ENABLED_PROVIDERS": [
-        "gemini-cli-oauth",
         "gemini-antigravity",
         "claude-kiro-oauth",
         "grok-web"
@@ -554,7 +547,7 @@ curl http://localhost:3000/claude-kiro-oauth/v1/chat/completions \
    ```json
    {
      "OPENAI_BASE_URL": "https://your-proxy-endpoint.com/v1",
-     "CLAUDE_BASE_URL": "https://your-proxy-endpoint.com"
+     "CLAUDE_BASE_URL": "https://your-proxy-endpoint.com/v1"
    }
    ```
 
@@ -581,7 +574,7 @@ curl http://localhost:3000/claude-kiro-oauth/v1/chat/completions \
 
 ```json
 {
-  "gemini-cli-oauth": [
+  "gemini-antigravity": [
     {
       "uuid": "provider-1",
       "notSupportedModels": ["gemini-3.0-pro", "gemini-3.5-flash"],
@@ -601,15 +594,13 @@ curl http://localhost:3000/claude-kiro-oauth/v1/chat/completions \
 
 #### 3. クロスタイプフォールバック設定
 
-あるProvider Type（例：`gemini-cli-oauth`）のすべてのアカウントが429割り当て制限により枯渇したり、unhealthyとマークされた場合、システムは直接エラーを返すのではなく、互換性のある別のProvider Type（例：`gemini-antigravity`）に自動的にフォールバックできます。
+あるProvider Type（例：`claude-kiro-oauth`）のすべてのアカウントが429割り当て制限により枯渇したり、unhealthyとマークされた場合、システムは直接エラーを返すのではなく、互換性のある別のProvider Type（例：`claude-custom`）に自動的にフォールバックできます。
 
 **設定方法**：`configs/config.json` に `providerFallbackChain` 設定を追加：
 
 ```json
 {
   "providerFallbackChain": {
-    "gemini-cli-oauth": ["gemini-antigravity"],
-    "gemini-antigravity": ["gemini-cli-oauth"],
     "claude-kiro-oauth": ["claude-custom"],
     "claude-custom": ["claude-kiro-oauth"]
   }
@@ -622,7 +613,7 @@ curl http://localhost:3000/claude-kiro-oauth/v1/chat/completions \
    - 設定されたフォールバックタイプを検索
    - フォールバックタイプがリクエストされたモデルをサポートしているか確認（プロトコル互換性チェック）
    - フォールバックタイプのプールからhealthyなアカウントを選択
-3. 多段階降格チェーンをサポート：`gemini-cli-oauth → gemini-antigravity → openai-custom`
+3. 多段階降格チェーンをサポート：`claude-kiro-oauth → claude-custom → openai-custom`
 4. すべてのフォールバックタイプも利用できない場合のみエラーを返します
 
 **使用シナリオ**：
@@ -680,7 +671,7 @@ Grok などの TLS 指紋（JA3/JA4）を厳密に検証するサービスに対
 
 **解決策**：
 - **ネットワーク接続を確認**：Google、アリババクラウドなどのサービスに正常にアクセスできることを確認
-- **ポート占有を確認**：OAuthコールバックには特定のポートが必要です（Gemini: 8085, Antigravity: 8086, Codex: 1455, Grok CLI: 56121, Kiro: 19876-19880）、これらのポートが占有されていないことを確認
+- **ポート占有を確認**：OAuthコールバックには特定のポートが必要です（Antigravity: 8086, Codex: 1455, Grok CLI: 56121, Kiro: 19876-19880）、これらのポートが占有されていないことを確認
 - **ブラウザキャッシュをクリア**：シークレットモードを使用するか、ブラウザキャッシュをクリアして再試行
 - **ファイアウォール設定を確認**：ファイアウォールがローカルコールバックポートへのアクセスを許可していることを確認
 - **Dockerユーザー**：すべてのOAuthコールバックポートが正しくマッピングされていることを確認
@@ -845,8 +836,6 @@ OAuthトークン（Gemini、Antigravity、Codexなど）には通常、有効�
 本プロジェクトは [**GNU General Public License v3 (GPLv3)**](https://www.gnu.org/licenses/gpl-3.0) オープンソースライセンスに従います。詳細はルートディレクトリの `LICENSE` ファイルをご覧ください。
 
 ## 🙏 謝辞
-
-本プロジェクトの開発は公式Google Gemini CLIから大きなインスピレーションを受け、Cline 3.18.0版 `gemini-cli.ts` の一部のコード実装を参考にしました。ここにGoogle公式チームとCline開発チームの優れた仕事に心より感謝申し上げます！
 
 ### 貢献者リスト
 

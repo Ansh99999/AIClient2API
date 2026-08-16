@@ -4,7 +4,7 @@
 
 # AIClient2API（A2）🚀
 
-**一个能将多种仅客户端内使用的大模型 API（Gemini CLI, Antigravity, Codex, Grok, Kiro ...），模拟请求，统一封装为本地 OpenAI 兼容接口的强大代理。**
+**一个能将多种仅客户端内使用的大模型 API（Antigravity, Codex, Grok, Kiro ...），模拟请求，统一封装为本地 OpenAI 兼容接口的强大代理。**
 
 </div>
 
@@ -193,7 +193,7 @@
 >   - 配置方式：在 `configs/config.json` 中添加 `PROVIDER_POOLS_FILE_PATH` 参数
 >   - 参考配置：[provider_pools.json](./configs/provider_pools.json.example)
 > - **历史已开发**
->   - 支持 Gemini CLI、Kiro 等客户端2API
+>   - 支持 Gemini 、Kiro 等客户端2API
 >   - OpenAI ,Claude ,Gemini 三协议互转，自动智能切换
 > </details>
 ---
@@ -266,12 +266,12 @@
 #### 🐳 Docker 快捷启动 (推荐)
 
 ```bash
-docker run -d -p 3000:3000 -p 8085-8086:8085-8086 -p 1455:1455 -p 56121:56121 -p 19876-19880:19876-19880 --restart=always -v "指定路径/configs:/app/configs" -v "指定路径/plugins:/app/src/plugins-user" --name aiclient2api justlikemaki/aiclient-2-api
+docker run -d -p 3000:3000 -p 8086:8086 -p 1455:1455 -p 56121:56121 -p 19876-19880:19876-19880 --restart=always -v "指定路径/configs:/app/configs" -v "指定路径/plugins:/app/src/plugins-user" --name aiclient2api justlikemaki/aiclient-2-api
 ```
 
 **参数说明**：
 - `-d`：后台运行容器
-- `-p 3000:3000 ...`：端口映射。3000 为 Web UI，其余为 OAuth 回调端口（Gemini: 8085, Antigravity: 8086, Codex: 1455, Grok CLI: 56121, Kiro: 19876-19880）
+- `-p 3000:3000 ...`：端口映射。3000 为 Web UI，其余为 OAuth 回调端口（Antigravity: 8086, Codex: 1455, Grok CLI: 56121, Kiro: 19876-19880）
 - `--restart=always`：容器自动重启策略
 - `-v "指定路径/configs:/app/configs"`：挂载配置目录（请将"指定路径"替换为实际路径，如 `/home/user/aiclient2api`）
 - `-v "指定路径/plugins:/app/src/plugins-user"`：挂载用户插件目录
@@ -398,15 +398,10 @@ docker compose up -d
 
 #### 🌐 Web UI 快捷授权 (推荐)
 在 Web UI 管理界面中，您可以极速完成授权配置：
-1. **生成授权**：在 **“提供商池”** 页面或**“配置管理”** 页面，点击对应提供商（如 Gemini）右上角的 **“生成授权”** 按钮。
-2. **扫码/登录**：系统将弹出授权对话框，您可以点击 **“在浏览器中打开”** 进行登录验证。对于 Gemini，Antigravity 需完成 Google 账号授权。
+1. **生成授权**：在 **“提供商池”** 页面或**“配置管理”** 页面，点击对应提供商（如 Codex）右上角的 **“生成授权”** 按钮。
+2. **扫码/登录**：系统将弹出授权对话框，您可以点击 **“在浏览器中打开”** 进行登录验证。Antigravity 需完成 Google 账号授权。
 3. **自动保存**：授权成功后，系统会自动获取凭据并保存至 `configs/` 对应目录下，您可以在 **“配置文件”** 页面看到新生成的凭据。
 4. **可视化管理**：您可以随时在 Web UI 中上传、删除凭据，或通过 **“快速关联”** 功能将已有的凭据文件一键绑定到提供商。
-
-#### Gemini CLI OAuth 配置
-1. **获取OAuth凭据**：访问 [Google Cloud Console](https://console.cloud.google.com/) 创建项目，启用Gemini API
-2. **项目配置**：可能需要提供有效的Google Cloud项目ID，可通过启动参数 `--project-id` 指定
-3. **确保项目ID**：在 Web UI 中配置时，确保输入的项目ID与 Google Cloud Console 和 Gemini CLI 中显示的项目ID一致。
 
 #### Antigravity OAuth 配置
 1. **个人账号**：个人账号需要单独授权，已关闭申请渠道。
@@ -497,7 +492,6 @@ curl http://localhost:3000/claude-kiro-oauth/v1/chat/completions \
 
 | 服务 | 默认路径 | 说明 |
 |------|---------|------|
-| **Gemini** | `~/.gemini/oauth_creds.json` | OAuth 认证凭据 |
 | **Kiro** | `~/.aws/sso/cache/kiro-auth-token.json` | Kiro 认证令牌 |
 | **Antigravity** | `~/.antigravity/oauth_creds.json` | Antigravity OAuth 凭据 (支持 Claude Opus) |
 | **Codex** | `~/.codex/oauth_creds.json` | Codex OAuth 凭据 |
@@ -537,7 +531,6 @@ curl http://localhost:3000/claude-kiro-oauth/v1/chat/completions \
    {
      "PROXY_URL": "http://127.0.0.1:7890",
       "PROXY_ENABLED_PROVIDERS": [
-        "gemini-cli-oauth",
         "gemini-antigravity",
         "claude-kiro-oauth",
         "grok-web"
@@ -553,7 +546,7 @@ curl http://localhost:3000/claude-kiro-oauth/v1/chat/completions \
    ```json
    {
      "OPENAI_BASE_URL": "https://your-proxy-endpoint.com/v1",
-     "CLAUDE_BASE_URL": "https://your-proxy-endpoint.com"
+     "CLAUDE_BASE_URL": "https://your-proxy-endpoint.com/v1"
    }
    ```
 
@@ -580,7 +573,7 @@ curl http://localhost:3000/claude-kiro-oauth/v1/chat/completions \
 
 ```json
 {
-  "gemini-cli-oauth": [
+  "gemini-antigravity": [
     {
       "uuid": "provider-1",
       "notSupportedModels": ["gemini-3.0-pro", "gemini-3.5-flash"],
@@ -600,15 +593,13 @@ curl http://localhost:3000/claude-kiro-oauth/v1/chat/completions \
 
 #### 3. 跨类型 Fallback 配置
 
-当某一 Provider Type（如 `gemini-cli-oauth`）下的所有账号都因 429 配额耗尽或被标记为 unhealthy 时，系统能够自动 fallback 到另一个兼容的 Provider Type（如 `gemini-antigravity`），而不是直接返回错误。
+当某一 Provider Type（如 `claude-kiro-oauth`）下的所有账号都因 429 配额耗尽或被标记为 unhealthy 时，系统能够自动 fallback 到另一个兼容的 Provider Type（如 `claude-custom`），而不是直接返回错误。
 
 **配置方式**：在 `configs/config.json` 中添加 `providerFallbackChain` 配置：
 
 ```json
 {
   "providerFallbackChain": {
-    "gemini-cli-oauth": ["gemini-antigravity"],
-    "gemini-antigravity": ["gemini-cli-oauth"],
     "claude-kiro-oauth": ["claude-custom"],
     "claude-custom": ["claude-kiro-oauth"]
   }
@@ -621,7 +612,7 @@ curl http://localhost:3000/claude-kiro-oauth/v1/chat/completions \
    - 查找配置的 fallback 类型
    - 检查 fallback 类型是否支持当前请求的模型（协议兼容性检查）
    - 从 fallback 类型的池中选取 healthy 账号
-3. 支持多级降级链：`gemini-cli-oauth → gemini-antigravity → openai-custom`
+3. 支持多级降级链：`claude-kiro-oauth → claude-custom → openai-custom`
 4. 如果所有 fallback 类型也不可用，才返回错误
 
 **使用场景**：
@@ -679,7 +670,7 @@ curl http://localhost:3000/claude-kiro-oauth/v1/chat/completions \
 
 **解决方案**：
 - **检查网络连接**：确保能够正常访问 Google、阿里云等服务
-- **检查端口占用**：OAuth 回调需要特定端口（Gemini: 8085, Antigravity: 8086, Codex: 1455, Grok CLI: 56121, Kiro: 19876-19880），确保这些端口未被占用
+- **检查端口占用**：OAuth 回调需要特定端口（Antigravity: 8086, Codex: 1455, Grok CLI: 56121, Kiro: 19876-19880），确保这些端口未被占用
 - **清除浏览器缓存**：尝试使用无痕模式或清除浏览器缓存后重试
 - **检查防火墙设置**：确保防火墙允许本地回调端口的访问
 - **Docker 用户**：确保已正确映射所有 OAuth 回调端口
@@ -868,7 +859,6 @@ OAuth 令牌（如 Gemini, Antigravity, Codex）通常有一定的有效期（�
 本项目遵循 [**GNU General Public License v3 (GPLv3)**](https://www.gnu.org/licenses/gpl-3.0) 开源许可。详情请查看根目录下的 `LICENSE` 文件。
 ## 🙏 致谢
 
-本项目的开发受到了官方 Google Gemini CLI 的极大启发，并参考了Cline 3.18.0 版本 `gemini-cli.ts` 的部分代码实现。在此对 Google 官方团队和 Cline 开发团队的卓越工作表示衷心的感谢！
 ### 贡献者列表
 
 感谢以下所有为 AIClient2API 项目做出贡献的开发者：
