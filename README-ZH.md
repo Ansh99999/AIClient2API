@@ -149,12 +149,12 @@
   </tr>
   <tr>
     <td width="25%" align="center" valign="middle">
-      <a href="https://app.vmcardio.com/#/login/register?code=902506">
+      <a href="https://vmcardio.com/zh/register?code=902506">
         <img src="static/vmcard.png" alt="VMCard Sponsor" width="180">
       </a>
     </td>
     <td width="75%" align="left" valign="middle">
-      <strong>VMCard｜AI 业务企业级支付卡</strong>，面向 AI 账号商、AI API 服务商及批量订阅业务团队。GPT / Claude 丝滑支付，专属美国 Visa 卡段，支持 API 批量开卡，全网最低结算汇率，满足大批量、长期稳定支付需求。<a href="https://app.vmcardio.com/#/login/register?code=902506">通过此链接注册</a>。
+      <strong>VMCard｜AI 业务企业级支付卡</strong>，面向 AI 账号商、AI API 服务商及批量订阅业务团队。GPT / Claude 丝滑支付，专属美国 Visa 卡段，支持 API 批量开卡，全网最低结算汇率，满足大批量、长期稳定支付需求。<a href="https://vmcardio.com/zh/register?code=902506">通过此链接注册</a>。
     </td>
   </tr>
   <tr>

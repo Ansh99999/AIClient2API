@@ -149,12 +149,12 @@
   </tr>
   <tr>
     <td width="25%" align="center" valign="middle">
-      <a href="https://app.vmcardio.com/#/login/register?code=902506">
+      <a href="https://vmcardio.com/zh/register?code=902506">
         <img src="static/vmcard.png" alt="VMCard Sponsor" width="180">
       </a>
     </td>
     <td width="75%" align="left" valign="middle">
-      <strong>VMCard | Enterprise Payment Cards for AI Businesses</strong> is built for AI account vendors, AI API providers, and teams managing bulk subscriptions. It enables seamless GPT / Claude payments with dedicated U.S. Visa BINs, API-based bulk card issuance, and the lowest settlement exchange rates available—ideal for high-volume, long-term, stable payment needs. <a href="https://app.vmcardio.com/#/login/register?code=902506">Register through this link</a>.
+      <strong>VMCard | Enterprise Payment Cards for AI Businesses</strong> is built for AI account vendors, AI API providers, and teams managing bulk subscriptions. It enables seamless GPT / Claude payments with dedicated U.S. Visa BINs, API-based bulk card issuance, and the lowest settlement exchange rates available—ideal for high-volume, long-term, stable payment needs. <a href="https://vmcardio.com/zh/register?code=902506">Register through this link</a>.
     </td>
   </tr>
   <tr>
