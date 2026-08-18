@@ -1201,24 +1201,32 @@ export class ClaudeConverter extends BaseConverter {
      */
     cleanUrlFormatFromSchema(schema) {
         if (!schema || typeof schema !== 'object') return;
-        
+
+        // Gemini 只接受字符串枚举值：过滤非字符串元素，过滤后为空则移除 enum
+        if (Array.isArray(schema.enum)) {
+            schema.enum = schema.enum.filter(v => typeof v === 'string');
+            if (schema.enum.length === 0) {
+                delete schema.enum;
+            }
+        }
+
         // 如果是属性对象，检查并清理 format
         if (schema.type === 'string' && schema.format === 'uri') {
             delete schema.format;
         }
-        
+
         // 递归处理 properties
         if (schema.properties && typeof schema.properties === 'object') {
             Object.values(schema.properties).forEach(prop => {
                 this.cleanUrlFormatFromSchema(prop);
             });
         }
-        
+
         // 递归处理 items（数组类型）
         if (schema.items) {
             this.cleanUrlFormatFromSchema(schema.items);
         }
-        
+
         // 递归处理 additionalProperties
         if (schema.additionalProperties && typeof schema.additionalProperties === 'object') {
             this.cleanUrlFormatFromSchema(schema.additionalProperties);
