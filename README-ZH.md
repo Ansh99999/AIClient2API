@@ -149,6 +149,16 @@
   </tr>
   <tr>
     <td width="25%" align="center" valign="middle">
+      <a href="https://app.vmcardio.com/#/login/register?code=902506">
+        <img src="static/vmcard.png" alt="VMCard Sponsor" width="180">
+      </a>
+    </td>
+    <td width="75%" align="left" valign="middle">
+      <strong>VMCard｜AI 业务企业级支付卡</strong>，面向 AI 账号商、AI API 服务商及批量订阅业务团队。GPT / Claude 丝滑支付，专属美国 Visa 卡段，支持 API 批量开卡，全网最低结算汇率，满足大批量、长期稳定支付需求。<a href="https://app.vmcardio.com/#/login/register?code=902506">通过此链接注册</a>。
+    </td>
+  </tr>
+  <tr>
+    <td width="25%" align="center" valign="middle">
       <img src="static/wechat.png" alt="Sponsor Contact" width="150">
     </td>
     <td width="75%" align="left" valign="middle">
@@ -864,12 +874,6 @@ OAuth 令牌（如 Gemini, Antigravity, Codex）通常有一定的有效期（�
 感谢以下所有为 AIClient2API 项目做出贡献的开发者：
 
 [![Contributors](https://contrib.rocks/image?repo=justlovemaki/AIClient-2-API)](https://github.com/justlovemaki/AIClient-2-API/graphs/contributors)
-
-
-### 🌟 Star History
-
-
-[![Star History Chart](https://api.star-history.com/svg?repos=justlovemaki/AIClient-2-API&type=Timeline)](https://www.star-history.com/#justlovemaki/AIClient-2-API&Timeline)
 
 ---
 

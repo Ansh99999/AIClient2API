@@ -49,11 +49,12 @@ const ANTIGRAVITY_EMPTY_TEXT_PLACEHOLDER = '.';
 // 导致上游/代理静默挂住连接时请求永久等待（并发插槽也不会释放）。
 // 首字节与空闲分开计时：thinking 模型首字节可能较慢，但长时间无新数据即视为连接已死。
 const ANTIGRAVITY_STREAM_FIRST_BYTE_TIMEOUT_MS = 180000;
-const ANTIGRAVITY_STREAM_IDLE_TIMEOUT_MS = 90000;
+const ANTIGRAVITY_STREAM_IDLE_TIMEOUT_MS = 300000;
 
 // 上游偶尔以非 SSE 的 JSON 数组返回整个响应，需缓存原始行才能回退解析。
 // 超过该行数认为不是「一次性 JSON 响应」，放弃缓存以免长流吃内存。
 const ANTIGRAVITY_RAW_FALLBACK_MAX_LINES = 20000;
+const ANTIGRAVITY_ERROR_BODY_MAX_BYTES = 1024 * 1024;
 
 // 获取 Antigravity 模型列表
 const ANTIGRAVITY_MODELS = getProviderModels(MODEL_PROVIDER.ANTIGRAVITY);
@@ -1521,6 +1522,7 @@ export class AntigravityApiService {
         }
 
         const baseURL = this.baseURLs[baseURLIndex];
+        let hasYielded = false;
 
         try {
             const requestOptions = {
@@ -1536,29 +1538,61 @@ export class AntigravityApiService {
                 // 阻止 gaxios 在非 2xx 时自行消耗流并抛异常，
                 // 由下方 res.status !== 200 统一处理，保证流仍可读取
                 validateStatus: () => true,
-                // 首字节超时：响应头迟迟不到时主动失败，避免请求永久挂起。
-                // 注意这是「响应头」超时，SSE 建连后由下方 parseSSEStream 的空闲超时接管。
-                timeout: this.config.ANTIGRAVITY_STREAM_FIRST_BYTE_TIMEOUT_MS
-                    ?? ANTIGRAVITY_STREAM_FIRST_BYTE_TIMEOUT_MS,
                 body: JSON.stringify(body)
             };
 
+            // Gaxios 的 timeout 是覆盖整个响应生命周期的绝对超时，不能用于流式请求的
+            // “首字节”限制，否则持续正常输出的长响应也会在固定时长被中止。
+            // 这里使用独立 AbortController，并在响应头到达后立即清除计时器；后续流读取
+            // 由 parseSSEStream 的 idle watchdog 负责。
+            // Sidecar 配置可能同步抛错，必须在创建计时器前完成，避免遗留定时器。
             this._applySidecar(requestOptions);
-            const res = await this.authClient.request(requestOptions);
+
+            const firstByteTimeoutMs = this.config.ANTIGRAVITY_STREAM_FIRST_BYTE_TIMEOUT_MS
+                ?? ANTIGRAVITY_STREAM_FIRST_BYTE_TIMEOUT_MS;
+            let firstByteTimer = null;
+            let firstByteTimedOut = false;
+            if (firstByteTimeoutMs > 0) {
+                const firstByteController = new AbortController();
+                requestOptions.signal = firstByteController.signal;
+                firstByteTimer = setTimeout(() => {
+                    firstByteTimedOut = true;
+                    firstByteController.abort();
+                }, firstByteTimeoutMs);
+            }
+
+            let res;
+            try {
+                res = await this.authClient.request(requestOptions);
+            } catch (error) {
+                if (firstByteTimedOut) {
+                    const timeoutError = new Error(`[Antigravity] Stream first byte timeout after ${firstByteTimeoutMs}ms.`);
+                    timeoutError.code = 'ETIMEDOUT';
+                    throw timeoutError;
+                }
+                throw error;
+            } finally {
+                if (firstByteTimer) clearTimeout(firstByteTimer);
+            }
 
             if (res.status !== 200) {
                 let errorBody = '';
                 try {
-                    for await (const chunk of res.data) {
-                        errorBody += chunk.toString();
-                    }
-                } catch (_) { /* 流可能已关闭 */ }
+                    errorBody = await this.readErrorResponseBody(res.data);
+                } catch (error) {
+                    // 错误响应体本身停滞时按网络超时处理，允许在尚未产出数据时切换端点/重试。
+                    if (error?.code === 'ETIMEDOUT') throw error;
+                    errorBody = `[Failed to read upstream error body: ${error.message}]`;
+                }
                 const upstreamError = new Error(`Upstream API Error (Status ${res.status}): ${errorBody}`);
                 upstreamError.response = { status: res.status, data: errorBody };
                 throw upstreamError;
             }
 
-            yield* this.parseSSEStream(res.data);
+            for await (const chunk of this.parseSSEStream(res.data)) {
+                hasYielded = true;
+                yield chunk;
+            }
         } catch (error) {
             const status = error.response?.status;
             const errorCode = error.code;
@@ -1568,6 +1602,14 @@ export class AntigravityApiService {
             const isNetworkError = isRetryableNetworkError(error);
             
             logger.error(`[Antigravity API] Error during stream (Status: ${status}, Code: ${errorCode}):`, error.message);
+
+            // 已经向上层产出过数据时，绝不能在 provider 内重做整个请求。旧逻辑会把
+            // 第二次生成拼接到已发送的前缀后，导致重复、错位或最终截断。把错误交给
+            // common.js，由其按“已发送数据不可重试”的规则安全结束响应。
+            if (hasYielded) {
+                logger.warn('[Antigravity API] Stream failed after partial output; skipping internal retry.');
+                throw error;
+            }
 
             if ((status === 401) && !isRetry) {
                 logger.info('[Antigravity API] Received 401 Unauthorized during stream. Triggering background refresh via PoolManager...');
@@ -1639,6 +1681,59 @@ export class AntigravityApiService {
         }
     }
 
+    async readErrorResponseBody(stream) {
+        const idleTimeoutMs = this.config.ANTIGRAVITY_STREAM_IDLE_TIMEOUT_MS
+            ?? ANTIGRAVITY_STREAM_IDLE_TIMEOUT_MS;
+        let idleTimer = null;
+        let idleTimedOut = false;
+        const chunks = [];
+        let totalBytes = 0;
+        let truncated = false;
+
+        const clearIdleTimer = () => {
+            if (idleTimer) {
+                clearTimeout(idleTimer);
+                idleTimer = null;
+            }
+        };
+        const armIdleTimer = () => {
+            clearIdleTimer();
+            if (!(idleTimeoutMs > 0)) return;
+            idleTimer = setTimeout(() => {
+                idleTimedOut = true;
+                try { stream.destroy(new Error('Antigravity error response idle timeout')); } catch (_) { /* 忽略 */ }
+            }, idleTimeoutMs);
+        };
+
+        try {
+            armIdleTimer();
+            for await (const chunk of stream) {
+                armIdleTimer();
+                const data = Buffer.isBuffer(chunk) ? chunk : Buffer.from(String(chunk));
+                const remaining = ANTIGRAVITY_ERROR_BODY_MAX_BYTES - totalBytes;
+                if (data.length > remaining) {
+                    if (remaining > 0) chunks.push(data.subarray(0, remaining));
+                    truncated = true;
+                    try { stream.destroy(); } catch (_) { /* 忽略 */ }
+                    break;
+                }
+                chunks.push(data);
+                totalBytes += data.length;
+            }
+        } catch (error) {
+            if (idleTimedOut) {
+                const timeoutError = new Error(`[Antigravity] Error response idle timeout after ${idleTimeoutMs}ms.`);
+                timeoutError.code = 'ETIMEDOUT';
+                throw timeoutError;
+            }
+            throw error;
+        } finally {
+            clearIdleTimer();
+        }
+
+        return Buffer.concat(chunks).toString('utf8') + (truncated ? '\n[error body truncated]' : '');
+    }
+
     async * parseSSEStream(stream) {
         const rl = readline.createInterface({
             input: stream,
@@ -1670,6 +1765,12 @@ export class AntigravityApiService {
             }, idleTimeoutMs);
         };
 
+        // 必须按底层字节到达重置 idle timer，而不是等待 readline 产出完整行。
+        // 否则持续传输但迟迟没有换行的大型 SSE/base64 帧会被误判为空闲。
+        const canObserveRawData = typeof stream?.on === 'function';
+        const onStreamData = () => armIdleTimer();
+        if (canObserveRawData) stream.on('data', onStreamData);
+
         const sseFields = /^(data|event|id|retry):/i;
         let buffer = [];
         // 诊断用：统计实际读到的行，以及未能匹配任何分支而被丢弃的行。
@@ -1695,8 +1796,8 @@ export class AntigravityApiService {
         try {
             armIdleTimer();
             for await (let line of rl) {
-                // 收到任意一行即重新计时
-                armIdleTimer();
+                // 非 Node stream 无法监听原始 data 事件时，退回按行续期。
+                if (!canObserveRawData) armIdleTimer();
                 lineCount++;
                 const trimmedLine = line.trim();
                 // 只在尚未产出任何 chunk 时留存原始文本：正常 SSE 流不会为此占用内存
@@ -1732,6 +1833,10 @@ export class AntigravityApiService {
             throw error;
         } finally {
             clearIdleTimer();
+            if (canObserveRawData) {
+                if (typeof stream.off === 'function') stream.off('data', onStreamData);
+                else if (typeof stream.removeListener === 'function') stream.removeListener('data', onStreamData);
+            }
             rl.close();
         }
 
