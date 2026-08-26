@@ -58,6 +58,7 @@
       PackyCode is a reliable and efficient API relay service provider, offering relay services for Claude Code, Codex, Gemini, and more. PackyCode provides special discounts for our software users: <a href="https://www.packyapi.com/register?aff=AIClient2API">register using this link</a> and enter the <strong>AIClient2API</strong> promo code during recharge to get <strong>10% off</strong>.
     </td>
   </tr>
+  <!--
   <tr>
     <td width="25%" align="center" valign="middle">
       <a href="https://apikey.fun/register?aff=AIClient2API">
@@ -68,6 +69,7 @@
       Thanks to APIKEY.FUN for sponsoring this project! APIKEY.FUN is a professional enterprise-grade AI relay station, dedicated to providing stable, efficient, and low-cost AI model API access services for enterprises and individual developers. The platform supports mainstream popular models such as Claude, OpenAI, and Gemini, with prices as low as 7% of the official original price. Register through the <a href="https://apikey.fun/register?aff=AIClient2API">project's exclusive link</a> to enjoy an exclusive discount of up to <strong>5% off (95% of original price)</strong> for permanent recharges.
     </td>
   </tr>
+  -->
   <!--
   <tr>
     <td width="25%" align="center" valign="middle">

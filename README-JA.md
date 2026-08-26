@@ -58,6 +58,7 @@
       PackyCode は信頼性が高く効率的な API リレーサービスプロバイダーであり、Claude Code、Codex、Gemini などのリレーサービス提供しています。PackyCode は当ソフトウェアユーザーに特别割引を提供しています：<a href="https://www.packyapi.com/register?aff=AIClient2API">このリンクから登録</a>し、チャージ時に <strong>AIClient2API</strong> プロモーションコードを入力すると <strong>10% オフ</strong>になります。
     </td>
   </tr>
+  <!--
   <tr>
     <td width="25%" align="center" valign="middle">
       <a href="https://apikey.fun/register?aff=AIClient2API">
@@ -68,6 +69,7 @@
       APIKEY.FUN による本プロジェクトへのスポンサーに感謝します！APIKEY.FUN はプロフェッショナルな企業向け AI リレーサービスであり、企業や個人開発者に安定、効率的、低コストな AI モデル API アクセスサービスを提供することに尽力しています。Claude、OpenAI、Gemini などの主要な人気モデルをサポートしており、価格は公式価格のわずか 7% からです。本プロジェクトの<a href="https://apikey.fun/register?aff=AIClient2API">専用リンク</a>から登録すると、永続的なチャージに対して最大 <strong>5% オフ（95折）</strong> の特別割引を受けることができます。
     </td>
   </tr>
+  -->
   <!--
   <tr>
     <td width="25%" align="center" valign="middle">

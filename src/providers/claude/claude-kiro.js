@@ -640,6 +640,7 @@ export class KiroApiService {
         this.config = config;
         this.credPath = config.KIRO_OAUTH_CREDS_DIR_PATH || path.join(os.homedir(), ".aws", "sso", "cache");
         this.credsBase64 = config.KIRO_OAUTH_CREDS_BASE64;
+        this.apiKey = config.KIRO_API_KEY || (typeof process !== 'undefined' ? process.env.KIRO_API_KEY : null);
         this.useSystemProxy = config?.USE_SYSTEM_PROXY_KIRO ?? false;
         this.uuid = config?.uuid; // 获取多节点配置的 uuid
         logger.info(`[Kiro] System proxy ${this.useSystemProxy ? 'enabled' : 'disabled'}`);
@@ -696,10 +697,9 @@ export class KiroApiService {
                 'Accept': KIRO_CONSTANTS.ACCEPT_JSON,
                 'amz-sdk-invocation-id': uuidv4(),
                 'amz-sdk-request': 'attempt=1; max=3',
-                'x-amzn-codewhisperer-optout': true,
-                'x-amzn-kiro-agent-mode': 'vibe',
-                'x-amz-user-agent': `aws-sdk-js/1.0.34 KiroIDE-${kiroVersion}-${machineId}`,
-                'user-agent': `aws-sdk-js/1.0.34 ua/2.1 os/${osName} lang/js md/nodejs#${nodeVersion} api/codewhispererstreaming#1.0.34 m/E KiroIDE-${kiroVersion}-${machineId}`,
+                'x-amz-target': 'AmazonCodeWhispererStreamingService.GenerateAssistantResponse',
+                'x-amz-user-agent': 'aws-sdk-rust/1.3.15 ua/2.1 api/codewhispererstreaming/0.1.17593 os/linux lang/rust/1.92.0 m/F app/AmazonQ-For-CLI',
+                'user-agent': 'aws-sdk-rust/1.3.15 ua/2.1 api/codewhispererstreaming/0.1.17593 os/linux lang/rust/1.92.0 md/appVersion-2.10.0 app/AmazonQ-For-CLI',
                 'Connection': 'close'
             },
         };
@@ -813,6 +813,9 @@ async loadCredentials() {
         applyCredential('profileArn');
         applyCredential('region');
         applyCredential('idcRegion');
+        if (this.apiKey || (typeof process !== 'undefined' && process.env.KIRO_API_KEY)) {
+            this.accessToken = this.apiKey || process.env.KIRO_API_KEY;
+        }
 
         if (!this.region) {
             this.region = this.idcRegion || 'us-east-1';
@@ -860,6 +863,7 @@ async initializeAuth(forceRefresh = false) {
 
         // 只有在明确要求强制刷新，或者 AccessToken 确实缺失时，才执行刷新
         // 注意：在 V2 架构下，此方法主要由 PoolManager 的后台队列调用
+        if (this.accessToken && this.accessToken.startsWith('ksk_')) return;
         if (forceRefresh || (!this.accessToken && this.refreshToken)) {
             if (!this.refreshToken) {
                 throw new Error('No refresh token available to refresh access token.');
@@ -1173,7 +1177,39 @@ async saveCredentialsToFile(filePath, newData) {
     /**
      * Build CodeWhisperer request from OpenAI messages
      */
-    async buildCodewhispererRequest(messages, model, tools = null, inSystemPrompt = null, thinking = null) {
+
+    _isReasoningModel(model) {
+        if (!model) return false;
+        const m = model.toLowerCase();
+        return m.includes('gpt-5.6') || m.includes('gpt-5_6');
+    }
+
+    _resolveEffort(model, thinking, outputConfig = null, reasoningEffort = null) {
+        const explicitEffort = reasoningEffort || outputConfig?.effort;
+        const isReasoning = this._isReasoningModel(model);
+
+        if (isReasoning) {
+            if (thinking?.type === 'disabled') return 'none';
+            if (explicitEffort) {
+                const valid = ['none', 'low', 'medium', 'high', 'xhigh', 'max'];
+                return valid.includes(explicitEffort.toLowerCase()) ? explicitEffort.toLowerCase() : 'high';
+            }
+            return ''; // Omit so backend uses default 'high'
+        }
+
+        if (explicitEffort) {
+            const valid = ['low', 'medium', 'high', 'xhigh', 'max'];
+            return valid.includes(explicitEffort.toLowerCase()) ? explicitEffort.toLowerCase() : 'medium';
+        }
+
+        if (thinking && (thinking.type === 'enabled' || thinking.type === 'adaptive')) {
+            return 'medium';
+        }
+
+        return '';
+    }
+
+    async buildCodewhispererRequest(messages, model, tools = null, inSystemPrompt = null, thinking = null, outputConfig = null, reasoningEffort = null) {
         const conversationId = uuidv4();
         
         // 内置的 systemPrompt 前缀
@@ -1316,7 +1352,7 @@ async saveCredentialsToFile(filePath, newData) {
                             logger.info(`[Kiro] Truncated tool '${tool.name}' description: ${originalLength} -> ${desc.length} chars`);
                         }
                         
-                        return {
+                        const entry = {
                             toolSpecification: {
                                 name: toolNameMaps.toKiroName(tool.name),
                                 description: desc,
@@ -1325,7 +1361,10 @@ async saveCredentialsToFile(filePath, newData) {
                                 }
                             }
                         };
-                    });
+                        return tool.cache_control
+                            ? [entry, { cachePoint: { type: "default" } }]
+                            : [entry];
+                    }).flat();
                 
                 if (truncatedCount > 0) {
                     logger.info(`[Kiro] Truncated ${truncatedCount} tool description(s) to max ${MAX_DESCRIPTION_LENGTH} chars`);
@@ -1680,6 +1719,19 @@ async saveCredentialsToFile(filePath, newData) {
 
         request.conversationState.currentMessage.userInputMessage = userInputMessage;
 
+        const resolvedEffort = this._resolveEffort(codewhispererModel, thinking, outputConfig, reasoningEffort);
+        if (resolvedEffort) {
+            if (this._isReasoningModel(codewhispererModel)) {
+                request.additionalModelRequestFields = {
+                    reasoning: { effort: resolvedEffort }
+                };
+            } else {
+                request.additionalModelRequestFields = {
+                    output_config: { effort: resolvedEffort }
+                };
+            }
+        }
+
         if (this.authMethod === KIRO_CONSTANTS.AUTH_METHOD_SOCIAL) {
             request.profileArn = this.profileArn;
         }
@@ -1836,14 +1888,20 @@ async saveCredentialsToFile(filePath, newData) {
             throw new Error('No messages found in request body');
         }
 
-        const requestData = await this.buildCodewhispererRequest(messages, model, body.tools, body.system, body.thinking);
+        const requestData = await this.buildCodewhispererRequest(messages, model, body.tools, body.system, body.thinking, body.output_config, body.reasoning_effort);
 
         try {
             const token = this.accessToken; // Use the already initialized token
             const headers = {
                 'Authorization': `Bearer ${token}`,
                 'amz-sdk-invocation-id': `${uuidv4()}`,
+                'x-amz-target': 'AmazonCodeWhispererStreamingService.GenerateAssistantResponse',
+                'x-amz-user-agent': 'aws-sdk-rust/1.3.15 ua/2.1 api/codewhispererstreaming/0.1.17593 os/linux lang/rust/1.92.0 m/F app/AmazonQ-For-CLI',
+                'user-agent': 'aws-sdk-rust/1.3.15 ua/2.1 api/codewhispererstreaming/0.1.17593 os/linux lang/rust/1.92.0 md/appVersion-2.10.0 app/AmazonQ-For-CLI'
             };
+            if (token && (token.startsWith('ksk_') || (this.apiKey && token === this.apiKey))) {
+                headers['TokenType'] = 'API_KEY';
+            }
 
             // 当 model 以 kiro-amazonq 开头时，使用 amazonQUrl，否则使用 baseUrl
             const requestUrl = model.startsWith('amazonq') ? this.amazonQUrl : this.baseUrl;
@@ -2435,14 +2493,20 @@ async saveCredentialsToFile(filePath, newData) {
             throw new Error('No messages found in request body');
         }
 
-        const requestData = await this.buildCodewhispererRequest(messages, model, body.tools, body.system, body.thinking);
+        const requestData = await this.buildCodewhispererRequest(messages, model, body.tools, body.system, body.thinking, body.output_config, body.reasoning_effort);
         const toolNameMaps = requestData._kiroToolNameMaps;
 
         const token = this.accessToken;
         const headers = {
             'Authorization': `Bearer ${token}`,
             'amz-sdk-invocation-id': `${uuidv4()}`,
+            'x-amz-target': 'AmazonCodeWhispererStreamingService.GenerateAssistantResponse',
+            'x-amz-user-agent': 'aws-sdk-rust/1.3.15 ua/2.1 api/codewhispererstreaming/0.1.17593 os/linux lang/rust/1.92.0 m/F app/AmazonQ-For-CLI',
+            'user-agent': 'aws-sdk-rust/1.3.15 ua/2.1 api/codewhispererstreaming/0.1.17593 os/linux lang/rust/1.92.0 md/appVersion-2.10.0 app/AmazonQ-For-CLI'
         };
+        if (token && (token.startsWith('ksk_') || (this.apiKey && token === this.apiKey))) {
+            headers['TokenType'] = 'API_KEY';
+        }
 
         const requestUrl = model.startsWith('amazonq') ? this.amazonQUrl : this.baseUrl;
 
@@ -3585,6 +3649,9 @@ async saveCredentialsToFile(filePath, newData) {
             'amz-sdk-request': 'attempt=1; max=1',
             'Connection': 'close'
         };
+        if (this.accessToken && (this.accessToken.startsWith('ksk_') || (this.apiKey && this.accessToken === this.apiKey))) {
+            headers['TokenType'] = 'API_KEY';
+        }
 
         const axiosConfig = {
             method: 'get',

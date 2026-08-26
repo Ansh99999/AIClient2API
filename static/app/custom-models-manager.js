@@ -2,6 +2,7 @@
  * 自定义模型管理类 - 修复版
  */
 import { getProviderConfigs } from './utils.js';
+import { t } from './i18n.js';
 
 export class CustomModelsManager {
     constructor() {
@@ -188,7 +189,7 @@ export class CustomModelsManager {
                     <td colspan="6" class="table-empty-state">
                         <div class="empty-icon"><i class="fas fa-cubes"></i></div>
                         <div class="empty-text" data-i18n="customModels.noModels">暂无自定义模型</div>
-                        <div class="empty-hint">点击“添加模型”按钮开始创建</div>
+                        <div class="empty-hint" data-i18n="customModels.emptyHint">${t('customModels.emptyHint')}</div>
                     </td>
                 </tr>`;
             if (window.i18n) window.i18n.translateElement(tbody);
@@ -216,10 +217,10 @@ export class CustomModelsManager {
                 </td>
                 <td>
                     <div class="action-buttons">
-                        <button class="icon-btn edit edit-model-btn" data-id="${model.id}" title="编辑模型">
+                        <button class="icon-btn edit edit-model-btn" data-id="${model.id}" title="${t('customModels.editAction')}" data-i18n-title="customModels.editAction">
                             <i class="fas fa-edit"></i>
                         </button>
-                        <button class="icon-btn delete delete-model-btn" data-id="${model.id}" title="删除模型">
+                        <button class="icon-btn delete delete-model-btn" data-id="${model.id}" title="${t('customModels.deleteAction')}" data-i18n-title="customModels.deleteAction">
                             <i class="fas fa-trash-alt"></i>
                         </button>
                     </div>
@@ -349,7 +350,7 @@ export class CustomModelsManager {
     }
 
     async deleteModel(id) {
-        if (!confirm('确定删除该自定义模型吗？')) return;
+        if (!confirm(t('customModels.confirmDelete', { id }))) return;
         try {
             await window.apiClient.delete(`/custom-models/${encodeURIComponent(id)}`);
             await this.load();

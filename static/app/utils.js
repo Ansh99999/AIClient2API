@@ -1,5 +1,5 @@
 // 工具函数
-import { t, getCurrentLanguage } from './i18n.js';
+import { t } from './i18n.js';
 import { apiClient } from './auth.js';
 
 /**
@@ -169,10 +169,7 @@ function formatUptime(seconds) {
     const minutes = Math.floor((seconds % 3600) / 60);
     const secs = Math.floor(seconds % 60);
     
-    if (getCurrentLanguage() === 'en-US') {
-        return `${days}d ${hours}h ${minutes}m ${secs}s`;
-    }
-    return `${days}天 ${hours}小时 ${minutes}分 ${secs}秒`;
+    return t('common.uptime', { days, hours, minutes, seconds: secs });
 }
 
 /**

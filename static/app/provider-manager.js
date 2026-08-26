@@ -778,7 +778,7 @@ function generateAuthButton(providerType) {
     // Codex 提供商使用特殊图标
     if (providerType === 'openai-codex-oauth') {
         return `
-            <button class="generate-auth-btn" title="生成 Codex OAuth 授权链接">
+            <button class="generate-auth-btn" title="${t('providers.auth.generateTitle')}" data-i18n-title="providers.auth.generateTitle">
                 <i class="fas fa-key"></i>
                 <span data-i18n="providers.auth.generate">${t('providers.auth.generate')}</span>
             </button>
@@ -786,7 +786,7 @@ function generateAuthButton(providerType) {
     }
 
     return `
-        <button class="generate-auth-btn" title="生成OAuth授权链接">
+        <button class="generate-auth-btn" title="${t('providers.auth.generateTitle')}" data-i18n-title="providers.auth.generateTitle">
             <i class="fas fa-key"></i>
             <span data-i18n="providers.auth.generate">${t('providers.auth.generate')}</span>
         </button>
@@ -1070,7 +1070,7 @@ function showCodexBatchImportModal(providerType) {
                         </summary>
                         <div style="padding: 12px; background: #1f2937; border-radius: 0 0 8px 8px;">
                             <div style="color: #10b981; font-family: monospace; font-size: 12px;">
-                                <div style="color: #9ca3af; margin-bottom: 8px;">// 单个凭据导入示例：</div>
+                                <div style="color: #9ca3af; margin-bottom: 8px;" data-i18n="oauth.example.singleCredential">${t('oauth.example.singleCredential')}</div>
                                 <pre style="margin: 0; white-space: pre; overflow-x: auto;">{
   "access_token": "eyJhbG...",
   "id_token": "",
@@ -1080,7 +1080,7 @@ function showCodexBatchImportModal(providerType) {
 }</pre>
                             </div>
                             <div style="color: #10b981; font-family: monospace; font-size: 12px; margin-top: 16px;">
-                                <div style="color: #9ca3af; margin-bottom: 8px;">// 批量导入示例（JSON数组）：</div>
+                                <div style="color: #9ca3af; margin-bottom: 8px;" data-i18n="oauth.example.batchCredentials">${t('oauth.example.batchCredentials')}</div>
                                 <pre style="margin: 0; white-space: pre; overflow-x: auto;">[
   {
     "access_token": "token1...",
@@ -2022,7 +2022,7 @@ function showGrokAuthMethodSelector(providerType) {
                         </div>
                     </button>
                     <div style="padding: 12px; background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; font-size: 13px; color: #92400e;">
-                        <i class="fas fa-info-circle"></i> Grok 目前仅支持通过 SSO Token 手动添加或批量导入。
+                        <i class="fas fa-info-circle"></i> <span data-i18n="oauth.grok.ssoOnlyNotice">${t('oauth.grok.ssoOnlyNotice')}</span>
                     </div>
                 </div>
             </div>
@@ -2107,12 +2107,12 @@ function showGrokBatchImportModal(providerType) {
                         </summary>
                         <div style="padding: 12px; background: #1f2937; border-radius: 0 0 8px 8px;">
                             <div style="color: #10b981; font-family: monospace; font-size: 12px;">
-                                <div style="color: #9ca3af; margin-bottom: 8px;">// 格式 1：纯文本（每行一个 SSO）</div>
+                                <div style="color: #9ca3af; margin-bottom: 8px;" data-i18n="oauth.example.plainText">${t('oauth.example.plainText')}</div>
                                 <pre style="margin: 0; white-space: pre; overflow-x: auto; color: #34d399;">sso_token_1_abc...
 sso_token_2_def...</pre>
                             </div>
                             <div style="color: #10b981; font-family: monospace; font-size: 12px; margin-top: 16px;">
-                                <div style="color: #9ca3af; margin-bottom: 8px;">// 格式 2：JSON 数组</div>
+                                <div style="color: #9ca3af; margin-bottom: 8px;" data-i18n="oauth.example.jsonArray">${t('oauth.example.jsonArray')}</div>
                                 <pre style="margin: 0; white-space: pre; overflow-x: auto; color: #34d399;">[
   "sso_token_1...",
   "sso_token_2..."
@@ -2557,7 +2557,7 @@ function showGeminiBatchImportModal(providerType) {
                         </summary>
                         <div style="padding: 12px; background: #1f2937; border-radius: 0 0 8px 8px;">
                             <div style="color: #10b981; font-family: monospace; font-size: 12px;">
-                                <div style="color: #9ca3af; margin-bottom: 8px;">// 单个凭据导入示例：</div>
+                                <div style="color: #9ca3af; margin-bottom: 8px;" data-i18n="oauth.example.singleCredential">${t('oauth.example.singleCredential')}</div>
                                 <pre style="margin: 0; white-space: pre; overflow-x: auto;">{
   "access_token": "ya29.a0A...",
   "refresh_token": "1//0...",
@@ -2567,7 +2567,7 @@ function showGeminiBatchImportModal(providerType) {
 }</pre>
                             </div>
                             <div style="color: #10b981; font-family: monospace; font-size: 12px; margin-top: 16px;">
-                                <div style="color: #9ca3af; margin-bottom: 8px;">// 批量导入示例（JSON数组）：</div>
+                                <div style="color: #9ca3af; margin-bottom: 8px;" data-i18n="oauth.example.batchCredentials">${t('oauth.example.batchCredentials')}</div>
                                 <pre style="margin: 0; white-space: pre; overflow-x: auto;">[
   {
     "access_token": "ya29.a0A1...",
@@ -3183,7 +3183,7 @@ function showKiroAwsImportModal() {
                         </summary>
                         <div style="padding: 12px; background: #1f2937; border-radius: 0 0 8px 8px;">
                             <div style="color: #10b981; font-family: monospace; font-size: 12px; margin-bottom: 12px;">
-                                <div style="color: #9ca3af; margin-bottom: 8px;">// 单个凭据导入示例：</div>
+                                <div style="color: #9ca3af; margin-bottom: 8px;" data-i18n="oauth.example.singleCredential">${t('oauth.example.singleCredential')}</div>
                                 <pre style="margin: 0; white-space: pre; overflow-x: auto;">{
   "clientId": "VYZBSTx3Q7QEq1W3Wn8c5nVzLWVhc3QtMQ",
   "clientSecret": "eyJraWQi...OAMc",
@@ -3196,7 +3196,7 @@ function showKiroAwsImportModal() {
 }</pre>
                             </div>
                             <div style="color: #10b981; font-family: monospace; font-size: 12px; margin-top: 16px;">
-                                <div style="color: #9ca3af; margin-bottom: 8px;">// 批量导入示例（JSON数组）：</div>
+                                <div style="color: #9ca3af; margin-bottom: 8px;" data-i18n="oauth.example.batchCredentials">${t('oauth.example.batchCredentials')}</div>
                                 <pre style="margin: 0; white-space: pre; overflow-x: auto;">[
   {
     "clientId": "VYZBSTx3Q7QEq1W3Wn8c5nVzLWVhc3QtMQ",
@@ -3217,7 +3217,7 @@ function showKiroAwsImportModal() {
                             </div>
                             <div style="color: #fbbf24; font-size: 11px; margin-top: 12px; padding: 8px; background: rgba(251, 191, 36, 0.1); border-radius: 4px;">
                                 <i class="fas fa-info-circle"></i>
-                                <strong>注意：</strong>AWS企业用户需要额外添加 <code style="background: rgba(0,0,0,0.3); padding: 2px 4px; border-radius: 2px;">idcRegion</code> 字段
+                                <span data-i18n="oauth.kiro.awsEnterpriseNote">${t('oauth.kiro.awsEnterpriseNote')}</span>
                             </div>
                         </div>
                     </details>
@@ -3553,7 +3553,7 @@ function showKiroAwsImportModal() {
                 return `
                     <div style="padding: 8px; margin-bottom: 4px; background: ${cv.isValid ? '#f0fdf4' : '#fef2f2'}; border: 1px solid ${cv.isValid ? '#bbf7d0' : '#fecaca'}; border-radius: 4px;">
                         <div style="font-weight: 600; color: ${statusColor}; margin-bottom: 4px;">
-                            ${statusIcon} 凭据 ${cv.index}
+                            ${statusIcon} ${t('oauth.kiro.credentialLabel', { index: cv.index })}
                         </div>
                         <div style="font-size: 12px; color: #6b7280;">
                             ${fieldsHtml}
@@ -3567,7 +3567,7 @@ function showKiroAwsImportModal() {
                 validationResult.innerHTML = `
                     <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
                         <i class="fas fa-check-circle"></i>
-                        <strong>批量验证通过 (${mergedCredentials.length} 个凭据)</strong>
+                        <strong>${t('oauth.kiro.batchValidationSuccess', { count: mergedCredentials.length })}</strong>
                     </div>
                     <div style="max-height: 200px; overflow-y: auto;">
                         ${credentialsHtml}
@@ -3581,15 +3581,15 @@ function showKiroAwsImportModal() {
                 validationResult.innerHTML = `
                     <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
                         <i class="fas fa-exclamation-triangle"></i>
-                        <strong>批量验证失败</strong>
-                        <span style="font-weight: normal; font-size: 12px;">(${invalidCount} 个凭据缺少必需字段)</span>
+                        <strong>${t('oauth.kiro.batchValidationFailed')}</strong>
+                        <span style="font-weight: normal; font-size: 12px;">${t('oauth.kiro.batchValidationMissing', { count: invalidCount })}</span>
                     </div>
                     <div style="max-height: 200px; overflow-y: auto;">
                         ${credentialsHtml}
                     </div>
                     <p style="margin: 12px 0 0 0; font-size: 12px; padding: 8px; background: #fee2e2; border-radius: 4px;">
                         <i class="fas fa-lightbulb" style="color: #dc2626;"></i>
-                        请确保每个凭据都包含所有必需字段：clientId, clientSecret, accessToken, refreshToken
+                        ${t('oauth.kiro.requiredFields')}
                     </p>
                 `;
                 submitBtn.disabled = true;
@@ -3814,12 +3814,12 @@ function showKiroAwsImportModal() {
                                         resultItem.style.cssText = 'padding: 4px 0; border-bottom: 1px solid rgba(0,0,0,0.1);';
                                         
                                         if (current.success) {
-                                            resultItem.innerHTML = `凭据 ${current.index}: <span style="color: #166534;">✓ ${current.path}</span>`;
+                                            resultItem.innerHTML = `${t('oauth.kiro.credentialLabel', { index: current.index })}: <span style="color: #166534;">✓ ${current.path}</span>`;
                                         } else if (current.error === 'duplicate') {
-                                            resultItem.innerHTML = `凭据 ${current.index}: <span style="color: #d97706;">⚠ ${t('oauth.kiro.duplicateCredentials')}</span>
+                                            resultItem.innerHTML = `${t('oauth.kiro.credentialLabel', { index: current.index })}: <span style="color: #d97706;">⚠ ${t('oauth.kiro.duplicateCredentials')}</span>
                                                 ${current.existingPath ? `<span style="color: #666; font-size: 11px;">(${current.existingPath})</span>` : ''}`;
                                         } else {
-                                            resultItem.innerHTML = `凭据 ${current.index}: <span style="color: #991b1b;">✗ ${current.error}</span>`;
+                                            resultItem.innerHTML = `${t('oauth.kiro.credentialLabel', { index: current.index })}: <span style="color: #991b1b;">✗ ${current.error}</span>`;
                                         }
                                         
                                         resultsList.appendChild(resultItem);
@@ -4789,7 +4789,7 @@ function showAddProviderGroupModal(defaultBaseType = null) {
                     <input type="text" id="groupSuffix" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;" 
                            placeholder="${t('providers.addGroup.suffixPlaceholder')}" data-i18n-placeholder="providers.addGroup.suffixPlaceholder">
                     <small style="color: #666; font-size: 12px; margin-top: 5px; display: block;">
-                        示例: ${selectedConfig?.id || 'openai-custom'} + prod -> ${selectedConfig?.id || 'openai-custom'}-prod
+                        ${t('providers.addGroup.example', { baseType: selectedConfig?.id || 'openai-custom' })}
                     </small>
                 </div>
             </div>

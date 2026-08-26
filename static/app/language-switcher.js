@@ -8,7 +8,7 @@ export function createLanguageSwitcher() {
     const switcher = document.createElement('div');
     switcher.className = 'language-switcher';
     switcher.innerHTML = `
-        <button class="language-btn" id="languageBtn" aria-label="切换语言">
+        <button class="language-btn" id="languageBtn" aria-label="${t('common.switchLanguage')}" data-i18n-aria-label="common.switchLanguage">
             <i class="fas fa-globe"></i>
             <span class="current-lang">${currentLang === 'zh-CN' ? '中文' : 'EN'}</span>
         </button>

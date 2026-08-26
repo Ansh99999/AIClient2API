@@ -231,7 +231,7 @@ function renderProviderCards(providers, defaultProviders, configMap) {
                             </button>
                             <button type="button" class="btn btn-outline btn-sm access-curl-btn" 
                                     data-i18n-title="access.actions.copyCurl"
-                                    title="复制 curl 示例"
+                                    title="${escapeHtml(t('access.actions.copyCurl'))}"
                                     data-provider="${provider.id}"
                                     data-protocol="openai">
                                 <i class="fas fa-terminal"></i>
@@ -269,7 +269,7 @@ function renderProviderCards(providers, defaultProviders, configMap) {
                             </button>
                             <button type="button" class="btn btn-outline btn-sm access-curl-btn" 
                                     data-i18n-title="access.actions.copyCurl"
-                                    title="复制 curl 示例"
+                                    title="${escapeHtml(t('access.actions.copyCurl'))}"
                                     data-provider="${provider.id}"
                                     data-protocol="claude">
                                 <i class="fas fa-terminal"></i>

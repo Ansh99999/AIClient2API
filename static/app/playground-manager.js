@@ -309,7 +309,7 @@ async function handleSend() {
     // UI: User message
     const displayText = [
         text,
-        ...filesToSend.map(f => `[附件: ${f.name}]`)
+        ...filesToSend.map(f => `${t('playground.attachPrefix')}${f.name}]`)
     ].filter(Boolean).join('\n');
     appendMessage('user', displayText);
 
@@ -385,7 +385,7 @@ async function imageResponse(provider, model, prompt, files, bubble, interfaceTy
         const isEdit = interfaceType === 'image-edit' || (interfaceType === 'image' && imageFiles.length > 0);
         
         if (isEdit) {
-            if (imageFiles.length === 0) throw new Error('请先上传需要修改的图片');
+            if (imageFiles.length === 0) throw new Error(t('playground.imageEditRequired'));
             
             const formData = new FormData();
             formData.append('model', model);
@@ -485,7 +485,7 @@ async function unaryResponse(provider, model, bubble, params) {
             contentDiv.innerHTML = renderMarkdown(content);
             while (contentDiv.firstChild) bubble.appendChild(contentDiv.firstChild);
             
-            const historyContent = content.replace(/data:[^;]+;base64,[A-Za-z0-9+/=]+/g, '[图片]');
+            const historyContent = content.replace(/data:[^;]+;base64,[A-Za-z0-9+/=]+/g, t('playground.imagePlaceholder'));
             messages.push({role: 'assistant', content: historyContent});
         }
 
@@ -607,7 +607,7 @@ async function streamResponse(provider, model, bubble, params) {
             }
         }
 
-        const historyContent = accumulated.replace(/data:[^;]+;base64,[A-Za-z0-9+/=]+/g, '[图片]');
+        const historyContent = accumulated.replace(/data:[^;]+;base64,[A-Za-z0-9+/=]+/g, t('playground.imagePlaceholder'));
         messages.push({role: 'assistant', content: historyContent});
 
     } catch (e) {
@@ -693,7 +693,7 @@ function appendMessage(role, text) {
         const actions = document.createElement('div');
         actions.className = 'pg-message-actions';
         actions.innerHTML = `
-            <div class="pg-action-link btn-copy-msg" title="复制文本">
+            <div class="pg-action-link btn-copy-msg" title="${t('playground.copyText')}" data-i18n-title="playground.copyText">
                 <i class="fas fa-copy"></i>
             </div>
         `;
@@ -712,7 +712,7 @@ function appendMessage(role, text) {
         const actions = document.createElement('div');
         actions.className = 'pg-message-actions';
         actions.innerHTML = `
-            <div class="pg-action-link btn-retry-msg" title="重试此对话">
+            <div class="pg-action-link btn-retry-msg" title="${t('playground.retryConversation')}" data-i18n-title="playground.retryConversation">
                 <i class="fas fa-sync-alt"></i>
             </div>
         `;

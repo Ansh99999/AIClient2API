@@ -201,11 +201,12 @@
         gap: 0.375rem;
     }
 
-    /* GitHub链接 */
+    /* GitHub Star 引导在展开菜单中保留文字 */
     .header .header-controls[style*="display: flex"] .github-link {
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
+        width: auto;
+        min-height: 40px;
+        padding: 0.5rem 0.75rem;
+        border-radius: var(--radius-full);
         display: inline-flex;
         align-items: center;
         justify-content: center;
@@ -1693,6 +1694,7 @@
     .github-link,
     .theme-toggle,
     .logout-btn,
+    .language-btn,
     .mobile-menu-toggle {
         min-width: 44px;
         min-height: 44px;

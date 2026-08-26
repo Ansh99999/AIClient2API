@@ -213,7 +213,7 @@ function createConfigItemElement(config, index) {
     // 判断是否可以一键关联（未关联且路径包含支持的提供商目录）
     const canQuickLink = !config.isUsed && providerInfo !== null;
     const quickLinkBtnHtml = canQuickLink ?
-        `<button class="btn-quick-link-main" data-path="${config.path}" title="一键关联到 ${providerInfo.displayName}">
+        `<button class="btn-quick-link-main" data-path="${config.path}" title="${t('upload.action.quickLink')}: ${providerInfo.displayName}">
             <i class="fas fa-link"></i> ${t('upload.action.quickLink')}
         </button>` : '';
 
@@ -243,10 +243,10 @@ function createConfigItemElement(config, index) {
             
             <div class="config-item-middle">
                 <div class="config-meta-info">
-                    <span class="meta-item" title="文件大小">
+                    <span class="meta-item" title="${t('upload.detail.size')}" data-i18n-title="upload.detail.size">
                         <i class="fas fa-weight-hanging"></i> ${formatFileSize(config.size)}
                     </span>
-                    <span class="meta-item" title="最后修改时间">
+                    <span class="meta-item" title="${t('upload.detail.modified')}" data-i18n-title="upload.detail.modified">
                         <i class="fas fa-calendar-alt"></i> ${formatDate(config.modified)}
                     </span>
                 </div>
@@ -1198,7 +1198,7 @@ async function batchLinkProviderConfigs() {
     });
     
     const providerSummary = Object.entries(groupedByProvider)
-        .map(([name, count]) => `${name}: ${count}个`)
+        .map(([name, count]) => t('upload.batchLink.summaryItem', { name, count }))
         .join(', ');
     
     const confirmMsg = t('upload.batchLink.confirm', { count: unlinkedConfigs.length, summary: providerSummary });
@@ -1329,7 +1329,7 @@ async function downloadAllConfigs() {
         
         if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(errorData.error?.message || '下载失败');
+            throw new Error(errorData.error?.message || t('common.downloadFailed'));
         }
 
         const blob = await response.blob();

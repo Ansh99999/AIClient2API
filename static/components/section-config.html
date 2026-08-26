@@ -48,13 +48,13 @@
         <div class="config-form">
             <!-- 基础设置 -->
             <div class="config-group-section">
-                <h3 data-i18n="config.basic.title"><i class="fas fa-cog"></i> 基础设置</h3>
+                <h3><i class="fas fa-cog"></i> <span data-i18n="config.basic.title">基础设置</span></h3>
                 <div class="form-group password-input-group">
                     <label for="apiKey" data-i18n="config.apiKey">API密钥</label>
                     <div class="password-input-wrapper">
                         <div class="input-with-toggle">
                             <input type="password" id="apiKey" class="form-control" data-i18n="config.apiKeyPlaceholder" placeholder="请输入API密钥" autocomplete="off">
-                            <button type="button" class="password-toggle" data-target="apiKey" aria-label="显示/隐藏密码">
+                            <button type="button" class="password-toggle" data-target="apiKey" aria-label="显示/隐藏密码" data-i18n-aria-label="common.togglePassword">
                                 <i class="fas fa-eye" aria-hidden="true"></i>
                             </button>
                         </div>
@@ -136,7 +136,7 @@
 
             <!-- 代理与网络 -->
             <div class="config-group-section">
-                <h3 data-i18n="config.proxy.title"><i class="fas fa-globe"></i> 代理设置</h3>
+                <h3><i class="fas fa-globe"></i> <span data-i18n="config.proxy.title">代理设置</span></h3>
                 <div class="form-group">
                     <label for="proxyUrl" data-i18n="config.proxy.url">代理地址</label>
                     <input type="text" id="proxyUrl" class="form-control" data-i18n-placeholder="config.proxy.urlPlaceholder" placeholder="例如: http://127.0.0.1:7890 或 socks5://127.0.0.1:1080">
@@ -232,7 +232,7 @@
 
             <!-- 服务治理与高可用 -->
             <div class="config-group-section">
-                <h3 data-i18n="config.governance.title"><i class="fas fa-shield-alt"></i> 服务治理</h3>
+                <h3><i class="fas fa-shield-alt"></i> <span data-i18n="config.governance.title">服务治理</span></h3>
                 <div class="config-row">
                     <div class="form-group">
                         <label for="requestMaxRetries" data-i18n="config.advanced.maxRetries">请求最大重试次数</label>
@@ -305,7 +305,7 @@
 
             <!-- OAuth 与令牌 -->
             <div class="config-group-section">
-                <h3 data-i18n="config.oauth.title"><i class="fas fa-key"></i> OAuth & 令牌</h3>
+                <h3><i class="fas fa-key"></i> <span data-i18n="config.oauth.title">OAuth & 令牌</span></h3>
                 <div class="config-row">
                     <div class="form-group">
                         <label for="cronNearMinutes" data-i18n="config.advanced.cronInterval">令牌刷新间隔(分钟)</label>
@@ -328,7 +328,7 @@
 
             <!-- 定时健康检查 -->
             <div class="config-group-section">
-                <h3 data-i18n="config.healthCheck.title"><i class="fas fa-heartbeat"></i> 定时健康检查</h3>
+                <h3><i class="fas fa-heartbeat"></i> <span data-i18n="config.healthCheck.title">定时健康检查</span></h3>
                 <div class="config-row">
                     <div class="form-group">
                         <span class="toggle-label" data-i18n="config.healthCheck.enabled">启用定时检查</span>
@@ -348,11 +348,11 @@
                 <div class="form-group">
                     <label for="scheduledHealthCheckInterval" data-i18n="config.healthCheck.interval">检查间隔</label>
                     <div class="input-with-quick-select">
-                        <input type="number" id="scheduledHealthCheckInterval" class="form-control" min="60000" max="3600000" step="60000" value="600000" placeholder="毫秒">
+                        <input type="number" id="scheduledHealthCheckInterval" class="form-control" min="60000" max="3600000" step="60000" value="600000" placeholder="毫秒" data-i18n-placeholder="config.healthCheck.intervalPlaceholder">
                         <div class="quick-select-btns">
-                            <button type="button" class="btn btn-sm btn-outline-secondary" data-value="300000">5分钟</button>
-                            <button type="button" class="btn btn-sm btn-outline-secondary" data-value="600000">10分钟</button>
-                            <button type="button" class="btn btn-sm btn-outline-secondary" data-value="1800000">30分钟</button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" data-value="300000" data-i18n="config.healthCheck.quick5Minutes">5分钟</button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" data-value="600000" data-i18n="config.healthCheck.quick10Minutes">10分钟</button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" data-value="1800000" data-i18n="config.healthCheck.quick30Minutes">30分钟</button>
                         </div>
                     </div>
                     <small class="form-text" data-i18n="config.healthCheck.intervalNote">单位毫秒，最小60000ms(1分钟)，最大3600000ms(1小时)</small>
@@ -368,7 +368,7 @@
 
             <!-- 日志管理 -->
             <div class="config-group-section">
-                <h3 data-i18n="config.log.title"><i class="fas fa-file-alt"></i> 日志设置</h3>
+                <h3><i class="fas fa-file-alt"></i> <span data-i18n="config.log.title">日志设置</span></h3>
                 <div class="config-row">
                     <div class="form-group">
                         <label data-i18n="config.log.enabled">启用日志</label>
@@ -447,7 +447,7 @@
 
             <!-- 系统与高级 -->
             <div class="config-group-section">
-                <h3 data-i18n="config.advanced.title"><i class="fas fa-cogs"></i> 系统与高级</h3>
+                <h3><i class="fas fa-cogs"></i> <span data-i18n="config.advanced.title">系统与高级</span></h3>
                 <div class="form-group">
                     <label for="providerPoolsFilePath" data-i18n="config.advanced.poolFilePath">提供商池配置文件路径</label>
                     <input type="text" id="providerPoolsFilePath" class="form-control">
@@ -485,7 +485,7 @@
                     <div class="password-input-wrapper">
                         <div class="input-with-toggle">
                             <input type="password" id="adminPassword" class="form-control" autocomplete="new-password">
-                            <button type="button" class="password-toggle" data-target="adminPassword" aria-label="显示/隐藏密码">
+                            <button type="button" class="password-toggle" data-target="adminPassword" aria-label="显示/隐藏密码" data-i18n-aria-label="common.togglePassword">
                                 <i class="fas fa-eye" aria-hidden="true"></i>
                             </button>
                         </div>

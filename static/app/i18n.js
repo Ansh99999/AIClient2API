@@ -4,7 +4,11 @@ const translations = {
         // Header
         'header.title': 'AIClient2API 管理控制台',
         'header.description': 'AIClient2API 管理控制台 - 统一管理 AI 服务提供商',
-        'header.github': 'GitHub 仓库',
+        'header.github': '在 GitHub 上给项目点个 Star',
+        'header.githubStar': '点个 Star',
+        'header.menu': '菜单',
+        'header.videoTutorial': '视频教程',
+        'header.shop': '小卖部',
         'header.themeToggle': '切换主题',
         'header.status.connecting': '连接中...',
         'header.status.connected': '已连接',
@@ -34,17 +38,21 @@ const translations = {
         'nav.upload': '凭据文件管理',
         'nav.usage': '用量查询',
         'nav.logs': '实时日志',
-        'nav.sponsors': '赞助商',
         'nav.plugins': '插件管理',
         'nav.models': '可用模型',
         'nav.customModels': '自定义模型',
         'nav.playground': '模型测试',
 
         // Sponsors
-        'sponsors.title': '💎 赞助商',
-        'sponsors.subtitle': '*排序按赞助先后顺序排列，均推荐注册使用。*',
+        'sponsors.title': '项目赞助商',
+        'sponsors.subtitle': '感谢以下合作伙伴对项目的支持，按赞助时间排序。',
         'sponsors.becomeTitle': '成为赞助商',
         'sponsors.becomeDesc': '如果您有意赞助本项目，请扫描左侧微信二维码（添加时请注明来意：赞助）。',
+        'sponsors.packyDesc': 'PackyCode 是一家可靠且高效的 API 中转服务商，提供 Claude Code、Codex、Gemini 等模型的中转服务。PackyCode 为本软件用户提供特别优惠：<a href="https://www.packyapi.com/register?aff=AIClient2API" target="_blank" rel="noopener noreferrer">通过此链接注册</a>并在充值时输入 <strong>AIClient2API</strong> 优惠码，即可享受 <strong>10% 的折扣</strong>。',
+        'sponsors.atlasDesc': '感谢 Atlas Cloud 赞助本项目！Atlas Cloud 是一款<strong>全模态 AI 推理平台</strong>，为开发者提供单一的 AI API 以轻松接入视频生成、图像生成和大语言模型 API。无需管理多个供应商集成，您只需连接一次，即可统一访问跨所有模态的 <strong>300 多种精选模型</strong>。欢迎查看 Atlas Cloud 全新的 <a href="https://www.atlascloud.ai/console/coding-plan" target="_blank" rel="noopener noreferrer">编码计划促销活动 (coding plan)</a>，以获取更具性价比的 API 接入服务。',
+        'sponsors.fennoDesc': 'Fenno.ai 是一家稳定、高效的 API 中转服务商，目前主要提供 Codex 中转服务，兼容 OpenAI 及 Anthropic 协议，可灵活接入 Codex、Claude Code、OpenCode 等主流编程工具，可稳定支撑千亿 Token/日的企业级调用需求，支持国内及海外主体公对公结算、开票。Fenno.ai 为 CC-Connect 的用户提供了专属福利：<a href="https://api.fenno.ai/register?redirect=/purchase?tab=subscription%26group=16&amp;aff=2EW65KEQC938" target="_blank" rel="noopener noreferrer">通过此链接</a>即可订阅 <strong>9.9 元/150刀额度</strong>的超值 Coding Plan，邀请好友最高可享 <strong>20% 奖励</strong>，多邀多得！',
+        'sponsors.qiniuDesc': '七牛云 AI 是七牛云（02567.HK）旗下<strong>企业级大模型 MaaS 平台</strong>，可一站式调用全球 <strong>150+ 主流模型</strong>，兼容全球主流模型厂商协议，覆盖文本、图像、音频、视频、文件处理等全模态处理能力，服务超过 169 万企业及开发者用户。专属福利：企业用户可<a href="https://s.qiniu.com/FRF7bq" target="_blank" rel="noopener noreferrer">免费领 <strong>1200 万 Token</strong></a>，邀请好友最高得<strong>百亿 Token</strong>。',
+        'sponsors.vmcardDesc': '<strong>VMCard｜AI 业务企业级支付卡</strong>，面向 AI 账号商、AI API 服务商及批量订阅业务团队。GPT / Claude 丝滑支付，专属美国 Visa 卡段，支持 API 批量开卡，全网最低结算汇率，满足大批量、长期稳定支付需求。<a href="https://vmcardio.com/zh/register?code=902506" target="_blank" rel="noopener noreferrer">通过此链接注册</a>。',
 
         // Dashboard
         'dashboard.title': '系统概览',
@@ -117,6 +125,8 @@ const translations = {
         'dashboard.routing.badge.responses': 'Responses',
         'dashboard.routing.nodeName.grok': 'Grok Web',
         'dashboard.contact.title': '联系与赞助',
+        'dashboard.contact.wechatAlt': '微信二维码',
+        'dashboard.contact.sponsorAlt': '赞助二维码',
         'dashboard.contact.wechat': '扫码进群，注明来意',
         'dashboard.contact.wechatDesc': '添加微信获取更多技术支持和交流',
         'dashboard.contact.x': '关注 X.com',
@@ -258,6 +268,12 @@ const translations = {
         'oauth.kiro.awsParseError': '解析文件 {filename} 失败',
         'oauth.kiro.awsValidationSuccess': '验证通过！已找到全部必需字段',
         'oauth.kiro.awsValidationFailed': '验证失败！缺少必需字段',
+        'oauth.kiro.awsEnterpriseNote': '注意：AWS 企业用户需要额外添加 idcRegion 字段',
+        'oauth.kiro.credentialLabel': '凭据 {index}',
+        'oauth.kiro.batchValidationSuccess': '批量验证通过（{count} 个凭据）',
+        'oauth.kiro.batchValidationFailed': '批量验证失败',
+        'oauth.kiro.batchValidationMissing': '（{count} 个凭据缺少必需字段）',
+        'oauth.kiro.requiredFields': '请确保每个凭据都包含所有必需字段：clientId, clientSecret, accessToken, refreshToken',
         'oauth.kiro.awsMissingFields': '缺少 {count} 个字段',
         'oauth.kiro.awsUploadMore': '请上传包含缺失字段的文件，或切换到 JSON 模式手动补全',
         'oauth.kiro.awsPreviewJson': '合并后的凭据预览',
@@ -364,6 +380,11 @@ const translations = {
         'oauth.grok.startImport': '开始导入',
         'oauth.grok.jsonExample': '查看导入格式示例',
         'oauth.grok.jsonHint': '支持直接粘贴 SSO 字符串（每行一个）',
+        'oauth.grok.ssoOnlyNotice': 'Grok 目前仅支持通过 SSO Token 手动添加或批量导入。',
+        'oauth.example.singleCredential': '// 单个凭据导入示例：',
+        'oauth.example.batchCredentials': '// 批量导入示例（JSON 数组）：',
+        'oauth.example.plainText': '// 格式 1：纯文本（每行一个 SSO）',
+        'oauth.example.jsonArray': '// 格式 2：JSON 数组',
         'oauth.grok.duplicateToken': '重复凭据 - 此 SSO Token 已存在',
         'oauth.kiro.duplicateCredentials': '该凭据已存在，请勿重复导入',
         'oauth.kiro.builderIDStartURL': 'Builder ID Start URL',
@@ -528,6 +549,10 @@ const translations = {
         'config.healthCheck.enabled': '启用定时检查',
         'config.healthCheck.startupRun': '启动时运行',
         'config.healthCheck.interval': '检查间隔',
+        'config.healthCheck.intervalPlaceholder': '毫秒',
+        'config.healthCheck.quick5Minutes': '5分钟',
+        'config.healthCheck.quick10Minutes': '10分钟',
+        'config.healthCheck.quick30Minutes': '30分钟',
         'config.healthCheck.intervalNote': '单位毫秒，最小60000ms(1分钟)，最大3600000ms(1小时)，可手动输入或点击快捷按钮',
         'config.healthCheck.providerTypes': '定时检查的供应商',
         'config.healthCheck.providerTypesNote': '选择需要进行定时健康检查的供应商类型，留空则不进行任何检查',
@@ -616,6 +641,7 @@ const translations = {
         'upload.delete.forceDelete': '强制删除',
         'upload.delete.confirmDelete': '确认删除',
         'upload.batchLink.confirm': '确定要批量关联 {count} 个配置吗？\n\n{summary}',
+        'upload.batchLink.summaryItem': '{name}: {count}个',
         'upload.refresh.success': '刷新成功',
         'upload.action.view.failed': '查看失败',
         'upload.action.delete.failed': '删除失败',
@@ -630,6 +656,7 @@ const translations = {
         'upload.batchLink.processing': '正在批量关联 {count} 个配置...',
         'upload.batchLink.success': '成功关联 {count} 个配置',
         'upload.batchLink.partial': '关联完成: 成功 {success} 个, 失败 {fail} 个',
+        'upload.batchLink.failed': '批量关联失败',
         'upload.deleteUnbound': '删除未关联',
         'upload.deleteUnbound.none': '没有可删除的未关联配置文件（仅删除 configs/子目录/ 下的文件）',
         'upload.deleteUnbound.confirm': '确定要删除 {count} 个未关联的配置文件吗？\n\n注意：仅删除 configs/子目录/ 下的未关联文件，configs/ 根目录下的文件不会被删除。\n\n此操作不可撤销！',
@@ -647,6 +674,7 @@ const translations = {
         'providers.addGroup.error': '创建失败',
         'providers.addGroup.suffix': '分组名称 (后缀)',
         'providers.addGroup.suffixPlaceholder': '例如: qwen, glm, minimax',
+        'providers.addGroup.example': '示例：{baseType} + prod → {baseType}-prod',
         'providers.note': '如使用客户端默认授权配置需使用空节点',
         'providers.noProviders': '暂无提供商配置数据',
         'providers.searchPlaceholder': '搜索提供商名称、ID 或节点内容...',
@@ -677,6 +705,7 @@ const translations = {
         'providers.stat.usageCount': '使用次数',
         'providers.stat.errorCount': '错误次数',
         'providers.auth.generate': '生成授权',
+        'providers.auth.generateTitle': '生成 OAuth 授权链接',
         'providers.auth.importToken': '导入 Token',
         'providers.register': '网站注册',
         'providers.register.title': '打开提供商网站注册页',
@@ -731,7 +760,12 @@ const translations = {
         'modal.provider.modelPickerSelected': '已选择 {count} 个模型',
         'modal.provider.addTitle': '添加新提供商配置',
         'modal.provider.customName': '自定义名称',
+        'modal.provider.customNamePlaceholder': '节点自定义名称',
         'modal.provider.checkModelName': '检查模型名称',
+        'modal.provider.checkModelPlaceholder': '例如: gpt-3.5-turbo',
+        'modal.provider.concurrencyPlaceholder': '最大并发，默认 0 不限制',
+        'modal.provider.queuePlaceholder': '最大队列，默认 0 不限制',
+        'modal.provider.unlimitedPlaceholder': '默认 0 不限制',
         'modal.provider.healthCheckLabel': '健康检查',
         'modal.provider.enabled': '启用',
         'modal.provider.disabled': '禁用',
@@ -892,6 +926,10 @@ const translations = {
         'playground.you': '你',
         'playground.aborted': '(已中断)',
         'playground.attachPrefix': '[附件: ',
+        'playground.imagePlaceholder': '[图片]',
+        'playground.imageEditRequired': '请先上传需要修改的图片',
+        'playground.copyText': '复制文本',
+        'playground.retryConversation': '重试此对话',
         'playground.reqFailed': '请求失败',
         'playground.selectFirst': '← 请先在左侧选择提供商和模型',
         'playground.generating': '正在生成回复，请稍候...',
@@ -914,6 +952,7 @@ const translations = {
         'plugins.tabs.installed': '已安装',
         'plugins.tabs.market': '插件市场',
         'plugins.market.description': '在这里发现并安装官方或社区提供的增强插件',
+        'plugins.market.urlPlaceholder': '输入远程 market.json 地址（可选）',
         'plugins.market.refresh': '刷新市场',
         'plugins.market.loading': '正在加载插件市场...',
         'plugins.market.empty': '市场暂无可用插件',
@@ -922,7 +961,14 @@ const translations = {
         'plugins.market.buy': '购买并安装',
         'plugins.market.installed': '已安装',
         'plugins.market.incompatible': '版本不兼容',
+        'plugins.market.remoteUpdated': '市场索引已从远程更新',
+        'plugins.market.loadFailed': '加载市场失败：{error}',
+        'plugins.market.updateTo': '更新到 v{version}',
+        'plugins.market.install': '安装',
+        'plugins.market.paid': '付费',
         'plugins.payment.title': '购买插件',
+        'plugins.payment.titleWithName': '购买插件：{name}',
+        'plugins.payment.paidPlugin': '付费插件',
         'plugins.payment.priceLabel': '售价',
         'plugins.payment.scanToPay': '请扫码支付，或点击下方按钮前往支付页',
         'plugins.payment.goPage': '前往支付页面',
@@ -930,6 +976,14 @@ const translations = {
         'plugins.payment.uploadBtn': '上传并安装插件',
         'plugins.payment.uploading': '正在上传并安装插件...',
         'plugins.payment.success': '插件安装成功',
+        'plugins.installing': '正在安装...',
+        'plugins.install.success': '插件 {name} 安装成功',
+        'plugins.install.failed': '安装失败：{error}',
+        'plugins.uninstall.title': '卸载插件',
+        'plugins.uninstall.confirm': '确定要卸载插件“{name}”吗？\n警告：此操作将永久删除插件目录和所有配置，请提前备份插件数据！',
+        'plugins.uninstall.success': '插件 {name} 卸载成功',
+        'plugins.uninstall.failed': '卸载失败：{error}',
+        'plugins.uninstall.restart': '请重启服务以使更改生效',
         'plugins.stats.total': '总插件数',
         'plugins.stats.enabled': '已启用',
         'plugins.stats.disabled': '已禁用',
@@ -953,6 +1007,9 @@ const translations = {
         'customModels.editModel': '编辑模型',
         'customModels.description': '自定义模型管理支持三种用法：1. 为已存在模型定义默认参数设置；2. 将一个模型映射到其他提供商或实际模型；3. 新建一个模型并加入模型列表，新建模型后需要重启服务生效。',
         'customModels.noModels': '暂无自定义模型',
+        'customModels.emptyHint': '点击“添加模型”按钮开始创建',
+        'customModels.editAction': '编辑模型',
+        'customModels.deleteAction': '删除模型',
         'customModels.confirmDelete': '确定要删除模型 {id} 吗？',
         'customModels.table.id': '模型 ID / 别名',
         'customModels.table.name': '显示名称',
@@ -1021,6 +1078,7 @@ const translations = {
         'guide.client.cline.step2': '搜索 Cline 或 Continue 配置',
         'guide.client.cline.step3': '设置 API Base URL 为: http://localhost:3000/{provider}/v1',
         'guide.client.cline.step4': '填入 API Key 和模型名称',
+        'guide.client.curlTitle': '通用 cURL 调用',
         'guide.client.note': '提示：将 {provider} 替换为实际的提供商路径，如 gemini-cli-oauth、claude-kiro-oauth 等。可在「快速接入」页面的路由示例中查看完整路径。',
         'guide.faq.title': '常见问题',
         'guide.faq.q1': 'Q: 请求返回 404 错误怎么办？',
@@ -1183,6 +1241,7 @@ const translations = {
         'common.save': '保存配置',
         'common.providerPoolRefreshed': '提供商池数据已刷新',
         'common.togglePassword': '显示/隐藏密码',
+        'common.switchLanguage': '切换语言',
         'common.copy.success': '内容已复制到剪贴板',
         'common.copy.failed': '复制失败，请手动复制',
         'common.refresh.success': '刷新成功',
@@ -1190,6 +1249,7 @@ const translations = {
         'common.date.days': '天',
         'common.date.hours': '小时',
         'common.date.minutes': '分',
+        'common.uptime': '{days}天 {hours}小时 {minutes}分 {seconds}秒',
         
         // Login
         'login.title': '登录 - AIClient2API',
@@ -1212,7 +1272,11 @@ const translations = {
         // Header
         'header.title': 'AIClient2API Management Console',
         'header.description': 'AIClient2API Management Console - Unified management of AI service providers',
-        'header.github': 'GitHub Repository',
+        'header.github': 'Star this project on GitHub',
+        'header.githubStar': 'Star',
+        'header.menu': 'Menu',
+        'header.videoTutorial': 'Video Tutorial',
+        'header.shop': 'Shop',
         'header.themeToggle': 'Toggle Theme',
         'header.status.connecting': 'Connecting...',
         'header.status.connected': 'Connected',
@@ -1242,17 +1306,21 @@ const translations = {
         'nav.upload': 'Credential Files',
         'nav.usage': 'Usage Query',
         'nav.logs': 'Real-time Logs',
-        'nav.sponsors': 'Sponsors',
         'nav.plugins': 'Plugin Management',
         'nav.models': 'Available Models',
         'nav.customModels': 'Custom Models',
         'nav.playground': 'Playground',
 
         // Sponsors
-        'sponsors.title': '💎 Sponsors',
-        'sponsors.subtitle': '*Sorted by sponsorship order, registration and use recommended.*',
+        'sponsors.title': 'Project Sponsors',
+        'sponsors.subtitle': 'Thanks to the following partners for supporting the project. Listed in sponsorship order.',
         'sponsors.becomeTitle': 'Become a Sponsor',
         'sponsors.becomeDesc': 'If you are interested in sponsoring this project, please scan the WeChat QR code on the left (please indicate: Sponsorship).',
+        'sponsors.packyDesc': 'PackyCode is a reliable and efficient API relay service provider for Claude Code, Codex, Gemini, and more. AIClient2API users receive a special offer: <a href="https://www.packyapi.com/register?aff=AIClient2API" target="_blank" rel="noopener noreferrer">register through this link</a> and enter the <strong>AIClient2API</strong> promo code when topping up to get <strong>10% off</strong>.',
+        'sponsors.atlasDesc': 'Thanks to Atlas Cloud for sponsoring this project! Atlas Cloud is a <strong>full-modal AI inference platform</strong> that provides a single AI API for video generation, image generation, and LLM APIs. Connect once for unified access to <strong>300+ curated models</strong> across all modalities. See Atlas Cloud\'s new <a href="https://www.atlascloud.ai/console/coding-plan" target="_blank" rel="noopener noreferrer">coding plan promotion</a> for more cost-effective API access.',
+        'sponsors.fennoDesc': 'Fenno.ai is a stable and efficient API relay service currently focused on Codex. It supports OpenAI and Anthropic protocols, works with Codex, Claude Code, OpenCode, and other coding tools, and reliably handles enterprise-scale demand of hundreds of billions of tokens per day. Corporate settlement and invoicing are available for domestic and overseas entities. CC-Connect users can <a href="https://api.fenno.ai/register?redirect=/purchase?tab=subscription%26group=16&amp;aff=2EW65KEQC938" target="_blank" rel="noopener noreferrer">subscribe through this link</a> for a Coding Plan with <strong>$150 quota for RMB 9.9</strong> and earn up to <strong>20% rewards</strong> through referrals.',
+        'sponsors.qiniuDesc': 'Qiniu Cloud AI is an <strong>enterprise-grade large-model MaaS platform</strong> under Qiniu Cloud (02567.HK). It offers one-stop access to <strong>150+ mainstream global models</strong>, supports major provider protocols, and covers text, image, audio, video, and file processing for more than 1.69 million enterprise and developer users. Enterprise users can <a href="https://s.qiniu.com/FRF7bq" target="_blank" rel="noopener noreferrer">claim <strong>12 million tokens</strong> for free</a> and earn up to <strong>tens of billions of tokens</strong> through referrals.',
+        'sponsors.vmcardDesc': '<strong>VMCard | Enterprise Payment Cards for AI Businesses</strong> is built for AI account vendors, AI API providers, and teams managing bulk subscriptions. It supports seamless GPT / Claude payments, dedicated U.S. Visa BINs, API-based bulk card issuance, and highly competitive settlement exchange rates for stable, high-volume payment needs. <a href="https://vmcardio.com/zh/register?code=902506" target="_blank" rel="noopener noreferrer">Register through this link</a>.',
         
         // Dashboard
         'dashboard.title': 'System Overview',
@@ -1325,6 +1393,8 @@ const translations = {
         'dashboard.routing.badge.responses': 'Responses',
         'dashboard.routing.nodeName.grok': 'Grok Web',
         'dashboard.contact.title': 'Contact & Support',
+        'dashboard.contact.wechatAlt': 'WeChat QR code',
+        'dashboard.contact.sponsorAlt': 'Sponsorship QR code',
 
         'dashboard.contact.wechat': 'Scan to Join Group',
         'dashboard.contact.wechatDesc': 'Add WeChat for more technical support and communication',
@@ -1467,6 +1537,12 @@ const translations = {
         'oauth.kiro.awsParseError': 'Failed to parse file {filename}',
         'oauth.kiro.awsValidationSuccess': 'Validation passed! All required fields found',
         'oauth.kiro.awsValidationFailed': 'Validation failed! Required fields missing',
+        'oauth.kiro.awsEnterpriseNote': 'Note: AWS enterprise users must also add the idcRegion field',
+        'oauth.kiro.credentialLabel': 'Credential {index}',
+        'oauth.kiro.batchValidationSuccess': 'Batch validation passed ({count} credentials)',
+        'oauth.kiro.batchValidationFailed': 'Batch validation failed',
+        'oauth.kiro.batchValidationMissing': '({count} credentials are missing required fields)',
+        'oauth.kiro.requiredFields': 'Make sure every credential includes all required fields: clientId, clientSecret, accessToken, refreshToken',
         'oauth.kiro.awsMissingFields': '{count} field(s) missing',
         'oauth.kiro.awsUploadMore': 'Please upload files containing the missing fields, or switch to JSON mode to complete manually',
         'oauth.kiro.awsPreviewJson': 'Merged Credentials Preview',
@@ -1573,6 +1649,11 @@ const translations = {
         'oauth.grok.startImport': 'Start Import',
         'oauth.grok.jsonExample': 'View Import Examples',
         'oauth.grok.jsonHint': 'Supports pasting SSO strings directly (one per line)',
+        'oauth.grok.ssoOnlyNotice': 'Grok currently supports manual addition or batch import through SSO Tokens only.',
+        'oauth.example.singleCredential': '// Single credential import example:',
+        'oauth.example.batchCredentials': '// Batch import example (JSON array):',
+        'oauth.example.plainText': '// Format 1: plain text (one SSO per line)',
+        'oauth.example.jsonArray': '// Format 2: JSON array',
         'oauth.grok.duplicateToken': 'Duplicate credential - this SSO Token already exists',
         'oauth.kiro.duplicateCredentials': 'This credential already exists, please do not import duplicates',
         'oauth.kiro.builderIDStartURL': 'Builder ID Start URL',
@@ -1737,6 +1818,10 @@ const translations = {
         'config.healthCheck.enabled': 'Enable Scheduled Check',
         'config.healthCheck.startupRun': 'Run on Startup',
         'config.healthCheck.interval': 'Check Interval',
+        'config.healthCheck.intervalPlaceholder': 'Milliseconds',
+        'config.healthCheck.quick5Minutes': '5 min',
+        'config.healthCheck.quick10Minutes': '10 min',
+        'config.healthCheck.quick30Minutes': '30 min',
         'config.healthCheck.intervalNote': 'In milliseconds. Minimum 60000ms (1 min), maximum 3600000ms (1 hour). Enter manually or use quick select buttons',
         'config.healthCheck.providerTypes': 'Providers to Check',
         'config.healthCheck.providerTypesNote': 'Select provider types for scheduled health checks. Leave empty to skip all checks',
@@ -1825,6 +1910,7 @@ const translations = {
         'upload.delete.forceDelete': 'Force Delete',
         'upload.delete.confirmDelete': 'Confirm Delete',
         'upload.batchLink.confirm': 'Are you sure you want to link {count} config files?\n\n{summary}',
+        'upload.batchLink.summaryItem': '{name}: {count}',
         'upload.refresh.success': 'Refresh successful',
         'upload.action.view.failed': 'View failed',
         'upload.action.delete.failed': 'Delete failed',
@@ -1839,6 +1925,7 @@ const translations = {
         'upload.batchLink.processing': 'Batch linking {count} configurations...',
         'upload.batchLink.success': 'Successfully linked {count} configurations',
         'upload.batchLink.partial': 'Linking completed: {success} succeeded, {fail} failed',
+        'upload.batchLink.failed': 'Batch linking failed',
         'upload.deleteUnbound': 'Delete Unbound',
         'upload.deleteUnbound.none': 'No unbound config files to delete (only files in configs/subdirectory/ are deleted)',
         'upload.deleteUnbound.confirm': 'Are you sure you want to delete {count} unbound config files?\n\nNote: Only unbound files in configs/subdirectory/ will be deleted. Files directly in configs/ root will not be deleted.\n\nThis action cannot be undone!',
@@ -1854,6 +1941,7 @@ const translations = {
         'providers.addGroup.baseType': 'Base Type',
         'providers.addGroup.suffix': 'Suffix Name',
         'providers.addGroup.suffixPlaceholder': 'e.g., qwen, glm, minimax',
+        'providers.addGroup.example': 'Example: {baseType} + prod → {baseType}-prod',
         'providers.addGroup.success': 'Configuration group created, please add accounts',
         'providers.addGroup.error': 'Creation failed',
         'providers.note': 'If using default client authorization config, use an empty node',
@@ -1886,6 +1974,7 @@ const translations = {
         'providers.stat.usageCount': 'Usage Count',
         'providers.stat.errorCount': 'Error Count',
         'providers.auth.generate': 'Gen Auth',
+        'providers.auth.generateTitle': 'Generate OAuth authorization link',
         'providers.auth.importToken': 'Import Token',
         'providers.register': 'Register',
         'providers.register.title': 'Open provider registration page',
@@ -1940,7 +2029,12 @@ const translations = {
         'modal.provider.modelPickerSelected': '{count} models selected',
         'modal.provider.addTitle': 'Add New Provider Config',
         'modal.provider.customName': 'Custom Name',
+        'modal.provider.customNamePlaceholder': 'Custom node name',
         'modal.provider.checkModelName': 'Check Model Name',
+        'modal.provider.checkModelPlaceholder': 'e.g.: gpt-3.5-turbo',
+        'modal.provider.concurrencyPlaceholder': 'Max concurrency; 0 means unlimited',
+        'modal.provider.queuePlaceholder': 'Max queue size; 0 means unlimited',
+        'modal.provider.unlimitedPlaceholder': '0 means unlimited',
         'modal.provider.healthCheckLabel': 'Health Check',
         'modal.provider.enabled': 'Enabled',
         'modal.provider.disabled': 'Disabled',
@@ -2100,6 +2194,10 @@ const translations = {
         'playground.you': 'You',
         'playground.aborted': '(Aborted)',
         'playground.attachPrefix': '[Attachment: ',
+        'playground.imagePlaceholder': '[Image]',
+        'playground.imageEditRequired': 'Upload an image to edit first',
+        'playground.copyText': 'Copy text',
+        'playground.retryConversation': 'Retry this conversation',
         'playground.reqFailed': 'Request failed',
         'playground.selectFirst': '← Please select a provider and model on the left',
         'playground.generating': 'Generating response, please wait...',
@@ -2122,6 +2220,7 @@ const translations = {
         'plugins.tabs.installed': 'Installed',
         'plugins.tabs.market': 'Plugin Market',
         'plugins.market.description': 'Discover and install enhanced plugins from the official or community sources',
+        'plugins.market.urlPlaceholder': 'Enter a remote market.json URL (optional)',
         'plugins.market.refresh': 'Refresh Market',
         'plugins.market.loading': 'Loading plugin market...',
         'plugins.market.empty': 'No plugins available in the market',
@@ -2130,7 +2229,14 @@ const translations = {
         'plugins.market.buy': 'Buy & Install',
         'plugins.market.installed': 'Installed',
         'plugins.market.incompatible': 'Incompatible Version',
+        'plugins.market.remoteUpdated': 'Market index updated from remote source',
+        'plugins.market.loadFailed': 'Failed to load market: {error}',
+        'plugins.market.updateTo': 'Update to v{version}',
+        'plugins.market.install': 'Install',
+        'plugins.market.paid': 'Paid',
         'plugins.payment.title': 'Purchase Plugin',
+        'plugins.payment.titleWithName': 'Purchase plugin: {name}',
+        'plugins.payment.paidPlugin': 'Paid plugin',
         'plugins.payment.priceLabel': 'Price',
         'plugins.payment.scanToPay': 'Please scan the code to pay, or click the button below to go to the payment page',
         'plugins.payment.goPage': 'Go to Payment Page',
@@ -2138,6 +2244,14 @@ const translations = {
         'plugins.payment.uploadBtn': 'Upload & Install Plugin',
         'plugins.payment.uploading': 'Uploading and installing plugin...',
         'plugins.payment.success': 'Plugin installed successfully',
+        'plugins.installing': 'Installing...',
+        'plugins.install.success': 'Plugin {name} installed successfully',
+        'plugins.install.failed': 'Installation failed: {error}',
+        'plugins.uninstall.title': 'Uninstall plugin',
+        'plugins.uninstall.confirm': 'Uninstall plugin “{name}”?\nWarning: this permanently deletes the plugin directory and all configuration. Back up plugin data first.',
+        'plugins.uninstall.success': 'Plugin {name} uninstalled successfully',
+        'plugins.uninstall.failed': 'Uninstall failed: {error}',
+        'plugins.uninstall.restart': 'Restart the service for changes to take effect',
         'plugins.stats.total': 'Total Plugins',
         'plugins.stats.enabled': 'Enabled',
         'plugins.stats.disabled': 'Disabled',
@@ -2161,6 +2275,9 @@ const translations = {
         'customModels.editModel': 'Edit Model',
         'customModels.description': 'Custom Model Management supports three use cases: 1. define default parameters for an existing model; 2. map one model to another provider or actual model; 3. create a new model and add it to the model list. New models require a service restart to take effect.',
         'customModels.noModels': 'No custom models yet',
+        'customModels.emptyHint': 'Click “Add Model” to create one',
+        'customModels.editAction': 'Edit model',
+        'customModels.deleteAction': 'Delete model',
         'customModels.confirmDelete': 'Are you sure you want to delete model {id}?',
         'customModels.table.id': 'Model ID / Alias',
         'customModels.table.name': 'Display Name',
@@ -2229,6 +2346,7 @@ const translations = {
         'guide.client.cline.step2': 'Search for Cline or Continue configuration',
         'guide.client.cline.step3': 'Set API Base URL to: http://localhost:3000/{provider}/v1',
         'guide.client.cline.step4': 'Enter API Key and model name',
+        'guide.client.curlTitle': 'Generic cURL Request',
         'guide.client.note': 'Tip: Replace {provider} with the actual provider path, such as gemini-cli-oauth, claude-kiro-oauth, etc. See the routing examples on the "Quick Access" page for full paths.',
         'guide.faq.title': 'FAQ',
         'guide.faq.q1': 'Q: What to do if request returns 404 error?',
@@ -2352,6 +2470,7 @@ const translations = {
 
         // Common
         'common.togglePassword': 'Show/Hide Password',
+        'common.switchLanguage': 'Switch language',
         'common.confirm': 'Confirm',
         'common.cancel': 'Cancel',
         'common.close': 'Close',
@@ -2398,6 +2517,7 @@ const translations = {
         'common.date.days': 'd ',
         'common.date.hours': 'h ',
         'common.date.minutes': 'm',
+        'common.uptime': '{days}d {hours}h {minutes}m {seconds}s',
         
         // Login
         'login.title': 'Login - AIClient2API',
@@ -2527,100 +2647,78 @@ export function getCurrentLanguage() {
     return currentLanguage;
 }
 
-// 更新页面语言
-function updatePageLanguage() {
-    // 更新 HTML lang 属性
-    document.documentElement.lang = currentLanguage;
-    
-    // 更新所有带 data-i18n 或 data-i18n-xxx 属性的元素
-    document.querySelectorAll('[data-i18n], [data-i18n-placeholder], [data-i18n-title], [data-i18n-aria-label]').forEach(element => {
-        // 1. 处理属性翻译 (placeholder, title, aria-label)
-        const attributes = ['placeholder', 'title', 'aria-label'];
-        attributes.forEach(attr => {
-            const attrKey = element.getAttribute(`data-i18n-${attr}`);
-            if (attrKey) {
-                const params = element.getAttribute(`data-i18n-${attr}-params`);
-                const parsedParams = params ? JSON.parse(params) : {};
-                if (attr === 'aria-label') {
-                    element.setAttribute('aria-label', t(attrKey, parsedParams));
-                } else {
-                    element[attr] = t(attrKey, parsedParams);
-                }
-            }
-        });
+const I18N_SELECTOR = [
+    '[data-i18n]',
+    '[data-i18n-html]',
+    '[data-i18n-placeholder]',
+    '[data-i18n-title]',
+    '[data-i18n-aria-label]',
+    '[data-i18n-alt]'
+].join(', ');
 
-        // 2. 处理主文本翻译 (data-i18n)
-        const key = element.getAttribute('data-i18n');
+function parseI18nParams(element, attributeName = '') {
+    const suffix = attributeName ? `-${attributeName}` : '';
+    const params = element.getAttribute(`data-i18n${suffix}-params`)
+        || element.getAttribute('data-i18n-params');
+    return params ? JSON.parse(params) : {};
+}
+
+function translateElement(element) {
+    ['placeholder', 'title', 'aria-label', 'alt'].forEach(attributeName => {
+        const key = element.getAttribute(`data-i18n-${attributeName}`);
         if (key) {
-            const params = element.getAttribute('data-i18n-params');
-            const parsedParams = params ? JSON.parse(params) : {};
-            
-            if (element.tagName === 'INPUT' || element.tagName === 'TEXTAREA') {
-                // 如果没有显式的 data-i18n-placeholder，则 data-i18n 作用于 placeholder
-                if (!element.hasAttribute('data-i18n-placeholder')) {
-                    element.placeholder = t(key, parsedParams);
-                }
-            } else {
-                element.textContent = t(key, parsedParams);
-            }
+            element.setAttribute(attributeName, t(key, parseI18nParams(element, attributeName)));
         }
     });
-    
-    // 更新所有带 data-i18n-html 属性的元素（支持 HTML 内容）
-    document.querySelectorAll('[data-i18n-html]').forEach(element => {
-        const key = element.getAttribute('data-i18n-html');
-        const params = element.getAttribute('data-i18n-params');
-        const parsedParams = params ? JSON.parse(params) : {};
-        element.innerHTML = t(key, parsedParams);
-    });
+
+    const htmlKey = element.getAttribute('data-i18n-html');
+    if (htmlKey) {
+        element.innerHTML = t(htmlKey, parseI18nParams(element));
+        return;
+    }
+
+    const textKey = element.getAttribute('data-i18n');
+    if (!textKey) return;
+
+    const translatedText = t(textKey, parseI18nParams(element));
+    if (element.tagName === 'INPUT' || element.tagName === 'TEXTAREA') {
+        if (!element.hasAttribute('data-i18n-placeholder')) {
+            element.placeholder = translatedText;
+        }
+    } else {
+        element.textContent = translatedText;
+    }
+}
+
+function translateTree(root) {
+    if (root.matches?.(I18N_SELECTOR)) {
+        translateElement(root);
+    }
+    root.querySelectorAll?.(I18N_SELECTOR).forEach(translateElement);
+}
+
+// 更新页面语言
+function updatePageLanguage() {
+    document.documentElement.lang = currentLanguage;
+    translateTree(document);
 }
 
 // 初始化多语言
 export function initI18n() {
-    // 设置初始语言
     updatePageLanguage();
-    // 设置初始图片
     updateDashboardImages(currentLanguage);
-    
-    // 监听 DOM 变化，自动翻译新添加的元素
+
+    // 动态插入的文本、HTML 和属性使用同一套翻译逻辑。
     const observer = new MutationObserver((mutations) => {
         mutations.forEach((mutation) => {
             mutation.addedNodes.forEach((node) => {
-                if (node.nodeType === 1) { // 元素节点
-                    // 翻译新添加的元素
-                    if (node.hasAttribute('data-i18n')) {
-                        const key = node.getAttribute('data-i18n');
-                        const params = node.getAttribute('data-i18n-params');
-                        const parsedParams = params ? JSON.parse(params) : {};
-                        
-                        if (node.tagName === 'INPUT' || node.tagName === 'TEXTAREA') {
-                            if (node.placeholder !== undefined) {
-                                node.placeholder = t(key, parsedParams);
-                            }
-                        } else {
-                            node.textContent = t(key, parsedParams);
-                        }
-                    }
-                    
-                    // 翻译子元素
-                    node.querySelectorAll('[data-i18n]').forEach(element => {
-                        const key = element.getAttribute('data-i18n');
-                        const params = element.getAttribute('data-i18n-params');
-                        const parsedParams = params ? JSON.parse(params) : {};
-                        
-                        if (element.tagName === 'INPUT' || element.tagName === 'TEXTAREA') {
-                            if (element.placeholder !== undefined) {
-                                element.placeholder = t(key, parsedParams);
-                            }
-                        } else {
-                            element.textContent = t(key, parsedParams);
-                        }
-                    });
+                if (node.nodeType === 1) {
+                    translateTree(node);
                 }
             });
         });
     });
-    
+
     observer.observe(document.body, {
         childList: true,
         subtree: true

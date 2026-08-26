@@ -53,10 +53,10 @@
 /* System Info Panel in Dashboard */
 .system-info-panel {
     background: var(--bg-primary);
-    padding: 1.5rem;
+    padding: 1.25rem;
     border-radius: 0.5rem;
     box-shadow: var(--shadow-md);
-    margin-top: 1.5rem;
+    margin-top: 1rem;
 }
 
 .system-info-panel h3 {
@@ -69,17 +69,17 @@
 /* Provider Status Panel */
 .provider-status-panel {
     background: var(--bg-primary);
-    padding: 1.5rem;
+    padding: 1.25rem;
     border-radius: 0.5rem;
     box-shadow: var(--shadow-md);
-    margin-top: 1.5rem;
+    margin-top: 1rem;
 }
 
 .provider-status-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 1rem;
-    margin-top: 1rem;
+    gap: 0.75rem;
+    margin-top: 0.75rem;
 }
 
 .provider-status-card {
@@ -217,7 +217,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 1.5rem;
+    margin-bottom: 1rem;
 }
 
 .update-controls {
@@ -301,8 +301,8 @@
 /* Dashboard Top Row Layout */
 .dashboard-top-row {
     display: flex;
-    gap: 1.5rem;
-    margin-bottom: 2rem;
+    gap: 1.25rem;
+    margin-bottom: 1.25rem;
     align-items: stretch;
     justify-content: flex-start;
 }
@@ -507,7 +507,7 @@
     background: var(--bg-primary);
     border-radius: var(--radius-lg);
     border: 1px solid var(--border-color);
-    margin-top: 1.5rem;
+    margin-top: 1rem;
     overflow: hidden;
     box-shadow: var(--shadow-sm);
     transition: var(--transition);

@@ -346,7 +346,7 @@ async function login(password, rememberMe = false) {
         }
     } catch (error) {
         console.error('登录错误:', error);
-        return { success: false, message: '登录失败，请检查网络连接' };
+        return { success: false, message: t('login.error.failed') };
     }
 }
 

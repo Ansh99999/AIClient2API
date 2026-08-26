@@ -3,27 +3,29 @@
 <header class="header">
     <div class="header-content">
         <h1><img src="https://src.hex2077.dev/logo/favicon.ico" class="header-logo" alt="Logo"> <span class="header-title" data-i18n="header.title">AIClient2API 管理控制台</span></h1>
-        <button class="mobile-menu-toggle" id="mobileMenuToggle" aria-label="Menu" title="菜单">
+        <button class="mobile-menu-toggle" id="mobileMenuToggle" aria-label="菜单" data-i18n-aria-label="header.menu" title="菜单" data-i18n-title="header.menu">
             <i class="fas fa-bars"></i>
         </button>
         <div class="header-controls" id="headerControls">
-            <a href="https://a001.hex2077.dev/" target="_blank" class="kiro-buy-link" title="小卖部">
-                <i class="fas fa-shopping-cart"></i> <span>小卖部</span>
+            <a href="https://github.com/justlovemaki/AIClient-2-API" target="_blank" rel="noopener noreferrer" class="github-link" aria-label="在 GitHub 上给项目点个 Star" data-i18n-aria-label="header.github" title="在 GitHub 上给项目点个 Star" data-i18n-title="header.github">
+                <i class="fab fa-github" aria-hidden="true"></i>
+                <span class="github-label" data-i18n="header.githubStar">点个 Star</span>
+                <i class="fas fa-star github-star-icon" aria-hidden="true"></i>
             </a>
-            <a href="https://space.bilibili.com/3546828630919792/upload/video" target="_blank" class="kiro-video-link" title="视频教程">
-                <i class="fas fa-video"></i> <span>视频教程</span>
+            <a href="https://space.bilibili.com/3546828630919792/upload/video" target="_blank" rel="noopener noreferrer" class="kiro-video-link" title="视频教程" data-i18n-title="header.videoTutorial">
+                <i class="fas fa-video"></i> <span data-i18n="header.videoTutorial">视频教程</span>
+            </a>
+            <a href="https://a001.hex2077.dev/" target="_blank" rel="noopener noreferrer" class="kiro-buy-link" title="小卖部" data-i18n-title="header.shop">
+                <i class="fas fa-shopping-cart"></i> <span data-i18n="header.shop">小卖部</span>
             </a>
             <span class="status-badge" id="serverStatus">
                 <i class="fas fa-circle"></i> <span class="status-text" data-i18n="header.status.connecting">连接中...</span>
             </span>
-            <a href="https://github.com/justlovemaki/AIClient-2-API" target="_blank" rel="noopener noreferrer" class="github-link" title="GitHub" data-i18n-title="header.github">
-                <i class="fab fa-github"></i>
-            </a>
             <button id="themeToggleBtn" class="theme-toggle" aria-label="Toggle Theme" data-i18n-aria-label="header.themeToggle" title="切换主题" data-i18n-title="header.themeToggle">
                 <i class="fas fa-moon"></i>
                 <i class="fas fa-sun"></i>
             </button>
-            <button id="logoutBtn" class="logout-btn" data-i18n="header.logout" title="Logout" data-i18n-title="header.logout">
+            <button id="logoutBtn" class="logout-btn" title="Logout" data-i18n-title="header.logout">
                 <i class="fas fa-sign-out-alt"></i> <span data-i18n="header.logout">登出</span>
             </button>
             <button id="restartBtn" class="logout-btn" aria-label="Restart Service" data-i18n-aria-label="header.restart">

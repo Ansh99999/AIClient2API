@@ -433,17 +433,17 @@ function showProviderManagerModal(data, initialSearchTerm = '') {
                         <button class="btn btn-success" onclick="window.showAddProviderForm('${providerType}')">
                             <i class="fas fa-plus"></i> <span data-i18n="modal.provider.add">添加新提供商</span>
                         </button>
-                        <button class="btn btn-warning" onclick="window.resetAllProvidersHealth('${providerType}')" data-i18n="modal.provider.resetHealth" title="将所有节点的健康状态重置为健康">
-                            <i class="fas fa-heartbeat"></i> 重置为健康
+                        <button class="btn btn-warning" onclick="window.resetAllProvidersHealth('${providerType}')" title="${t('modal.provider.resetHealth')}" data-i18n-title="modal.provider.resetHealth">
+                            <i class="fas fa-heartbeat"></i> <span data-i18n="modal.provider.resetHealth">${t('modal.provider.resetHealth')}</span>
                         </button>
-                        <button class="btn btn-info" onclick="window.performHealthCheck('${providerType}')" data-i18n="modal.provider.healthCheck" title="对不健康节点执行健康检测">
-                            <i class="fas fa-stethoscope"></i> 检测不健康
+                        <button class="btn btn-info" onclick="window.performHealthCheck('${providerType}')" title="${t('modal.provider.healthCheck')}" data-i18n-title="modal.provider.healthCheck">
+                            <i class="fas fa-stethoscope"></i> <span data-i18n="modal.provider.healthCheck">${t('modal.provider.healthCheck')}</span>
                         </button>
-                        <button class="btn btn-secondary" onclick="window.refreshUnhealthyUuids('${providerType}')" data-i18n="modal.provider.refreshUnhealthyUuids" title="刷新不健康节点的UUID">
-                            <i class="fas fa-sync-alt"></i> <span data-i18n="modal.provider.refreshUnhealthyUuidsBtn">刷新UUID</span>
+                        <button class="btn btn-secondary" onclick="window.refreshUnhealthyUuids('${providerType}')" title="${t('modal.provider.refreshUnhealthyUuids')}" data-i18n-title="modal.provider.refreshUnhealthyUuids">
+                            <i class="fas fa-sync-alt"></i> <span data-i18n="modal.provider.refreshUnhealthyUuidsBtn">${t('modal.provider.refreshUnhealthyUuidsBtn')}</span>
                         </button>
-                        <button class="btn btn-danger" onclick="window.deleteUnhealthyProviders('${providerType}')" data-i18n="modal.provider.deleteUnhealthy" title="删除不健康节点">
-                            <i class="fas fa-trash-alt"></i> <span data-i18n="modal.provider.deleteUnhealthyBtn">删除不健康</span>
+                        <button class="btn btn-danger" onclick="window.deleteUnhealthyProviders('${providerType}')" title="${t('modal.provider.deleteUnhealthy')}" data-i18n-title="modal.provider.deleteUnhealthy">
+                            <i class="fas fa-trash-alt"></i> <span data-i18n="modal.provider.deleteUnhealthyBtn">${t('modal.provider.deleteUnhealthyBtn')}</span>
                         </button>
                     </div>
                 </div>
@@ -907,7 +907,7 @@ function renderProviderDetailList(providers) {
                         ${errorInfoHtml}
                     </div>
                     <div class="provider-actions-group">
-                        <button class="btn-small ${toggleButtonClass}" onclick="window.toggleProviderStatus('${provider.uuid}', event)" title="${toggleButtonText}此提供商">
+                        <button class="btn-small ${toggleButtonClass}" onclick="window.toggleProviderStatus('${provider.uuid}', event)" title="${toggleButtonText}">
                             <i class="${toggleButtonIcon}"></i> ${toggleButtonText}
                         </button>
                         <button class="btn-small btn-edit" onclick="window.editProvider('${provider.uuid}', event)">
@@ -1023,7 +1023,7 @@ function renderProviderConfig(provider) {
         
         // 查找字段定义以获取 placeholder
         const fieldDef = fieldConfigs.find(f => f.id === fieldKey) || fieldConfigs.find(f => f.id.toUpperCase() === fieldKey.toUpperCase()) || {};
-        const placeholder = fieldDef.placeholder || (fieldKey === 'customName' ? '节点自定义名称' : (fieldKey === 'checkModelName' ? '例如: gpt-3.5-turbo' : (fieldKey === 'concurrencyLimit' ? '最大并发, 默认0不限制' : (fieldKey === 'queueLimit' ? '最大队列, 默认0不限制' : ''))));
+        const placeholder = fieldDef.placeholder || (fieldKey === 'customName' ? t('modal.provider.customNamePlaceholder') : (fieldKey === 'checkModelName' ? t('modal.provider.checkModelPlaceholder') : (fieldKey === 'concurrencyLimit' ? t('modal.provider.concurrencyPlaceholder') : (fieldKey === 'queueLimit' ? t('modal.provider.queuePlaceholder') : ''))));
         
         // 如果是 customName 字段，使用普通文本输入框
         if (fieldKey === 'customName') {
@@ -1116,7 +1116,7 @@ function renderProviderConfig(provider) {
                                data-config-key="${field1Key}"
                                data-config-value="${(field1Value !== undefined && field1Value !== null) ? field1Value : ''}"
                                placeholder="${field1Def.placeholder || ''}">
-                       <button type="button" class="btn btn-outline upload-btn" data-target="edit-${provider.uuid}-${field1Key}" aria-label="上传文件" disabled>
+                       <button type="button" class="btn btn-outline upload-btn" data-target="edit-${provider.uuid}-${field1Key}" aria-label="${t('common.upload')}" data-i18n-aria-label="common.upload" disabled>
                             <i class="fas fa-upload"></i>
                         </button>
                     </div>
@@ -1178,7 +1178,7 @@ function renderProviderConfig(provider) {
                                    data-config-key="${field2Key}"
                                    data-config-value="${(field2Value !== undefined && field2Value !== null) ? field2Value : ''}"
                                    placeholder="${field2Def.placeholder || ''}">
-                            <button type="button" class="btn btn-outline upload-btn" data-target="edit-${provider.uuid}-${field2Key}" aria-label="上传文件" disabled>
+                            <button type="button" class="btn btn-outline upload-btn" data-target="edit-${provider.uuid}-${field2Key}" aria-label="${t('common.upload')}" data-i18n-aria-label="common.upload" disabled>
                                 <i class="fas fa-upload"></i>
                             </button>
                         </div>
@@ -1451,7 +1451,7 @@ function cancelEdit(uuid, event) {
     const toggleButtonClass = isCurrentlyDisabled ? 'btn-success' : 'btn-warning';
     
     actionsGroup.innerHTML = `
-        <button class="btn-small ${toggleButtonClass}" onclick="window.toggleProviderStatus('${uuid}', event)" title="${toggleButtonText}此提供商">
+        <button class="btn-small ${toggleButtonClass}" onclick="window.toggleProviderStatus('${uuid}', event)" title="${toggleButtonText}">
             <i class="${toggleButtonIcon}"></i> ${toggleButtonText}
         </button>
         <button class="btn-small btn-edit" onclick="window.editProvider('${uuid}', event)">
@@ -1639,11 +1639,11 @@ function showAddProviderForm(providerType) {
             </div>
             <div class="form-group">
                 <label><span data-i18n="modal.provider.concurrencyLimit">并发限制</span> <span class="optional-mark" data-i18n="config.optional">(选填)</span></label>
-                <input type="number" id="newConcurrencyLimit" placeholder="默认0不限制">
+                <input type="number" id="newConcurrencyLimit" placeholder="${t('modal.provider.unlimitedPlaceholder')}" data-i18n-placeholder="modal.provider.unlimitedPlaceholder">
             </div>
             <div class="form-group">
                 <label><span data-i18n="modal.provider.queueLimit">队列限制</span> <span class="optional-mark" data-i18n="config.optional">(选填)</span></label>
-                <input type="number" id="newQueueLimit" placeholder="默认0不限制">
+                <input type="number" id="newQueueLimit" placeholder="${t('modal.provider.unlimitedPlaceholder')}" data-i18n-placeholder="modal.provider.unlimitedPlaceholder">
             </div>
         </div>
         <div id="dynamicConfigFields">
@@ -1718,7 +1718,7 @@ function addDynamicConfigFields(form, providerType) {
             <label>${field1.label}</label>
             <div class="file-input-group">
                 <input type="text" id="new${field1.id}" class="form-control" placeholder="${field1.placeholder || ''}" value="${field1.value || ''}">
-                <button type="button" class="btn btn-outline upload-btn" data-target="new${field1.id}" aria-label="上传文件">
+                <button type="button" class="btn btn-outline upload-btn" data-target="new${field1.id}" aria-label="${t('common.upload')}" data-i18n-aria-label="common.upload">
                     <i class="fas fa-upload"></i>
                 </button>
             </div>
@@ -1761,7 +1761,7 @@ function addDynamicConfigFields(form, providerType) {
             <label>${field2.label}</label>
             <div class="file-input-group">
                 <input type="text" id="new${field2.id}" class="form-control" placeholder="${field2.placeholder || ''}" value="${field2.value || ''}">
-                <button type="button" class="btn btn-outline upload-btn" data-target="new${field2.id}" aria-label="上传文件">
+                <button type="button" class="btn btn-outline upload-btn" data-target="new${field2.id}" aria-label="${t('common.upload')}" data-i18n-aria-label="common.upload">
                     <i class="fas fa-upload"></i>
                 </button>
             </div>
