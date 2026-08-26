@@ -103,8 +103,7 @@ function parseCodexRetryAfterMs(errorBody) {
 
 function extractSSEData(line) {
     const trimmedLine = String(line || '').trim();
-    if (!trimmedLine) return null;
-    if (trimmedLine.startsWith('event: ') || trimmedLine.startsWith('id: ') || trimmedLine.startsWith('retry: ')) {
+    if (!trimmedLine || trimmedLine.startsWith(':') || trimmedLine.startsWith('event:') || trimmedLine.startsWith('id:') || trimmedLine.startsWith('retry:')) {
         return null;
     }
     if (trimmedLine.startsWith('data:')) {
