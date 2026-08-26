@@ -286,6 +286,17 @@ function cleanJsonSchemaGeneric(schema, options, recursiveFn) {
             continue;
         }
 
+        // 处理 enum：Gemini 要求枚举元素为字符串（仅 sanitizeEnum 模式）
+        if (key === 'enum' && options.sanitizeEnum) {
+            if (Array.isArray(value)) {
+                const strEnum = value.filter(v => typeof v === 'string');
+                if (strEnum.length > 0) {
+                    sanitized[key] = strEnum;
+                }
+            }
+            continue;
+        }
+
         // 处理 properties
         if (key === 'properties' && typeof value === 'object' && value !== null) {
             sanitized[key] = cleanPropertiesRecursively(value, recursiveFn);
@@ -327,7 +338,8 @@ export function cleanJsonSchemaProperties(schema) {
         schema,
         {
             allowedKeys: GEMINI_ALLOWED_KEYS,
-            typeHandler: handleGeminiTypeField
+            typeHandler: handleGeminiTypeField,
+            sanitizeEnum: true
         },
         cleanJsonSchemaProperties
     );
