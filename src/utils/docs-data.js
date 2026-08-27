@@ -103,6 +103,7 @@ export const API_GUIDE_DATA = [
         { method: 'DELETE', path: '/api/upload-configs/delete/{file}', desc: '删除特定的凭据文件' },
         { method: 'DELETE', path: '/api/upload-configs/delete-unbound', desc: '清理未被账号池绑定的凭据文件' },
         { method: 'GET',    path: '/api/upload-configs/download-all', desc: '打包下载所有配置文件 (ZIP)' },
+        { method: 'POST',   path: '/api/upload-configs/import-backup', desc: '导入备份包 (ZIP)，把整份配置还原到各自的位置' },
         { method: 'POST',   path: '/api/quick-link-provider',     desc: '自动将本地凭据关联到账号池' },
         { method: 'POST',   path: '/api/oauth/manual-callback',   desc: '手动提交 OAuth 授权回调数据' },
         { method: 'POST',   path: '/api/providers/{type}/generate-auth-url', desc: '生成 OAuth 授权引导链接' },

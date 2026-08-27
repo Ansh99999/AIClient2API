@@ -18,6 +18,8 @@ usage-cache.json
 api-potluck-keys.json
 api-potluck-data.json
 model-usage-stats.json
+configs/.backups/
+configs/temp/
 AGENTS.md
 src/plugins-user/
 

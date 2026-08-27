@@ -1041,6 +1041,15 @@ function initUploadConfigManager() {
     // 删除未绑定配置按钮
     const deleteUnboundBtn = document.getElementById('deleteUnboundBtn');
     bindOnce(deleteUnboundBtn, 'click', deleteUnboundConfigs, 'deleteUnboundConfigs');
+
+    // 导入备份按钮 + 它背后的隐藏 file input
+    const importBackupBtn = document.getElementById('importBackupBtn');
+    const importBackupInput = document.getElementById('importBackupFile');
+    bindOnce(importBackupBtn, 'click', openBackupPicker, 'importBackupBtn');
+    bindOnce(importBackupInput, 'change', (event) => {
+        const file = event.target.files && event.target.files[0];
+        previewBackupImport(file);
+    }, 'importBackupFile');
 }
 
 /**
@@ -1359,6 +1368,293 @@ async function downloadAllConfigs() {
 }
 
 /**
+ * 打开备份包选择器
+ */
+function openBackupPicker() {
+    const input = document.getElementById('importBackupFile');
+    if (!input) return;
+    // 清空一下，选同一个文件时 change 才会再触发
+    input.value = '';
+    input.click();
+}
+
+/**
+ * 选好文件之后：先要一份恢复计划，让用户看清楚东西会落到哪里再决定
+ * @param {File} file - 备份 zip
+ */
+async function previewBackupImport(file) {
+    if (!file) return;
+
+    try {
+        showToast(t('common.info'), t('upload.importBackup.analyzing'), 'info');
+        const preview = await requestBackupImport(file, { dryRun: true });
+        showImportBackupModal(file, preview);
+    } catch (error) {
+        console.error('解析备份包失败:', error);
+        showToast(t('common.error'), t('upload.importBackup.analyzeFailed') + ': ' + error.message, 'error');
+    }
+}
+
+/**
+ * 调用导入接口
+ * @param {File} file - 备份 zip
+ * @param {Object} options - dryRun / conflictPolicy / includeSensitive
+ */
+async function requestBackupImport(file, options = {}) {
+    const { dryRun = false, conflictPolicy = 'overwrite', includeSensitive = false } = options;
+
+    const formData = new FormData();
+    formData.append('dryRun', String(dryRun));
+    formData.append('conflictPolicy', conflictPolicy);
+    formData.append('includeSensitive', String(includeSensitive));
+    formData.append('file', file);
+
+    return await window.apiClient.upload('/upload-configs/import-backup', formData);
+}
+/**
+ * 把一份恢复计划（或导入结果）画成 源条目 -> 落点 的列表
+ * @param {HTMLElement} container - 容器
+ * @param {Object} data - 后端返回的计划或结果
+ */
+function renderImportPlan(container, data) {
+    if (!container) return;
+
+    const restored = data.imported || data.planned || [];
+    const skipped = data.skipped || [];
+    const failed = data.failed || [];
+
+    const rows = [
+        ...restored.map(item => ({
+            source: item.entry,
+            target: item.target,
+            cls: item.routed ? 'is-routed' : ''
+        })),
+        ...skipped.map(item => ({
+            source: item.entry,
+            target: t('upload.importBackup.reason.' + item.reason),
+            cls: 'is-skipped'
+        })),
+        ...failed.map(item => ({
+            source: item.target,
+            target: item.error,
+            cls: 'is-failed'
+        }))
+    ];
+
+    const summary = [
+        `<span>${t('upload.importBackup.willRestore', { count: restored.length })}</span>`,
+        `<span>${t('upload.importBackup.willSkip', { count: skipped.length })}</span>`
+    ];
+    if (failed.length > 0) {
+        summary.push(`<span>${t('upload.importBackup.didFail', { count: failed.length })}</span>`);
+    }
+
+    container.innerHTML = `
+        <div class="import-plan-summary">${summary.join('')}</div>
+        <div class="import-plan-list">
+            ${rows.map(row => `
+                <div class="import-plan-row ${row.cls}">
+                    <span class="plan-source">${escapeHtml(String(row.source || ''))}</span>
+                    <span class="plan-arrow">&rarr;</span>
+                    <span class="plan-target">${escapeHtml(String(row.target || ''))}</span>
+                </div>
+            `).join('')}
+        </div>
+    `;
+}
+/**
+ * 造一个和删除确认框同款的模态框骨架
+ * @param {string} bodyHtml - 主体内容
+ * @param {string} footerHtml - 按钮区内容
+ * @returns {{modal: HTMLElement, closeModal: Function}}
+ */
+function createImportModal(titleKey, bodyHtml, footerHtml) {
+    const modal = document.createElement('div');
+    modal.className = 'delete-confirm-modal import-backup';
+    modal.innerHTML = `
+        <div class="delete-modal-content">
+            <div class="delete-modal-header">
+                <h3 data-i18n="${titleKey}"><i class="fas fa-file-import"></i> ${t(titleKey)}</h3>
+                <button class="modal-close"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="delete-modal-body">${bodyHtml}</div>
+            <div class="delete-modal-footer">${footerHtml}</div>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    const closeModal = () => {
+        modal.classList.remove('show');
+        setTimeout(() => modal.remove(), 300);
+        document.removeEventListener('keydown', handleEsc);
+    };
+
+    const handleEsc = (event) => {
+        if (event.key === 'Escape') closeModal();
+    };
+
+    modal.querySelector('.modal-close')?.addEventListener('click', closeModal);
+    modal.addEventListener('click', (event) => {
+        if (event.target === modal) closeModal();
+    });
+    document.addEventListener('keydown', handleEsc);
+
+    setTimeout(() => modal.classList.add('show'), 10);
+
+    return { modal, closeModal };
+}
+/**
+ * 导入前的确认框：列出每个条目会落到哪里，并让用户挑重名策略
+ * @param {File} file - 备份 zip
+ * @param {Object} preview - dryRun 返回的计划
+ */
+function showImportBackupModal(file, preview) {
+    const bodyHtml = `
+        <div class="config-info">
+            <div class="config-info-item">
+                <span class="info-label" data-i18n="upload.importBackup.archive">${t('upload.importBackup.archive')}</span>
+                <span class="info-value">${escapeHtml(file.name)}</span>
+            </div>
+            <div class="config-info-item">
+                <span class="info-label" data-i18n="upload.importBackup.layout">${t('upload.importBackup.layout')}</span>
+                <span class="info-value">${t('upload.importBackup.layout.' + preview.style)}</span>
+            </div>
+        </div>
+        <div class="import-plan-options">
+            <label>
+                <span data-i18n="upload.importBackup.conflict">${t('upload.importBackup.conflict')}</span>
+                <select class="form-control import-conflict-policy">
+                    <option value="overwrite">${t('upload.importBackup.conflict.overwrite')}</option>
+                    <option value="skip">${t('upload.importBackup.conflict.skip')}</option>
+                    <option value="rename">${t('upload.importBackup.conflict.rename')}</option>
+                </select>
+            </label>
+            <label>
+                <input type="checkbox" class="import-include-sensitive">
+                <span data-i18n="upload.importBackup.includeSensitive">${t('upload.importBackup.includeSensitive')}</span>
+            </label>
+        </div>
+        <div class="import-plan-body"></div>
+        <p class="import-plan-note" data-i18n="upload.importBackup.note">${t('upload.importBackup.note')}</p>
+    `;
+
+    const footerHtml = `
+        <button class="btn btn-secondary btn-cancel-import" data-i18n="modal.provider.cancel">${t('modal.provider.cancel')}</button>
+        <button class="btn btn-primary btn-confirm-import">
+            <i class="fas fa-file-import"></i>
+            <span data-i18n="upload.importBackup.confirm">${t('upload.importBackup.confirm')}</span>
+        </button>
+    `;
+
+    const { modal, closeModal } = createImportModal('upload.importBackup.title', bodyHtml, footerHtml);
+    renderImportPlan(modal.querySelector('.import-plan-body'), preview);
+    const policySelect = modal.querySelector('.import-conflict-policy');
+    const sensitiveBox = modal.querySelector('.import-include-sensitive');
+    const confirmBtn = modal.querySelector('.btn-confirm-import');
+
+    // 勾选敏感文件会改变计划本身，重新算一次，别让用户看着过期的清单点确认
+    sensitiveBox?.addEventListener('change', async () => {
+        const planBody = modal.querySelector('.import-plan-body');
+        try {
+            sensitiveBox.disabled = true;
+            const refreshed = await requestBackupImport(file, {
+                dryRun: true,
+                includeSensitive: sensitiveBox.checked
+            });
+            renderImportPlan(planBody, refreshed);
+        } catch (error) {
+            console.error('刷新恢复计划失败:', error);
+            showToast(t('common.error'), t('upload.importBackup.analyzeFailed') + ': ' + error.message, 'error');
+            sensitiveBox.checked = !sensitiveBox.checked;
+        } finally {
+            sensitiveBox.disabled = false;
+        }
+    });
+
+    modal.querySelector('.btn-cancel-import')?.addEventListener('click', closeModal);
+
+    confirmBtn?.addEventListener('click', () => {
+        const options = {
+            conflictPolicy: policySelect?.value || 'overwrite',
+            includeSensitive: !!sensitiveBox?.checked
+        };
+        closeModal();
+        performBackupImport(file, options);
+    });
+}
+/**
+ * 真正执行导入，然后刷新列表并重载配置
+ * @param {File} file - 备份 zip
+ * @param {Object} options - conflictPolicy / includeSensitive
+ */
+async function performBackupImport(file, options) {
+    const button = document.getElementById('importBackupBtn');
+    if (button) button.disabled = true;
+
+    try {
+        showToast(t('common.info'), t('upload.importBackup.processing'), 'info');
+        const result = await requestBackupImport(file, { ...options, dryRun: false });
+
+        showImportResultModal(result);
+
+        if (result.importedCount > 0) {
+            showToast(
+                result.failedCount > 0 ? t('common.warning') : t('common.success'),
+                t('upload.importBackup.success', { count: result.importedCount }),
+                result.failedCount > 0 ? 'warning' : 'success'
+            );
+
+            await loadConfigList();
+
+            // 恢复出来的 config.json / provider_pools.json 得重载一次才生效
+            if (result.reloadRecommended) {
+                await reloadConfig();
+            }
+        } else {
+            showToast(t('common.info'), t('upload.importBackup.nothingRestored'), 'info');
+        }
+    } catch (error) {
+        console.error('导入备份失败:', error);
+        showToast(t('common.error'), t('upload.importBackup.failed') + ': ' + error.message, 'error');
+    } finally {
+        if (button) button.disabled = false;
+    }
+}
+/**
+ * 导入结果框：每个文件实际落到了哪里，以及导入前的快照放在哪
+ * @param {Object} result - 导入接口的返回
+ */
+function showImportResultModal(result) {
+    const snapshotHtml = result.snapshot
+        ? `<div class="config-info-item">
+                <span class="info-label" data-i18n="upload.importBackup.snapshot">${t('upload.importBackup.snapshot')}</span>
+                <span class="info-value">${escapeHtml(result.snapshot)}</span>
+           </div>`
+        : '';
+
+    const bodyHtml = `
+        <div class="config-info">
+            <div class="config-info-item">
+                <span class="info-label" data-i18n="upload.importBackup.archive">${t('upload.importBackup.archive')}</span>
+                <span class="info-value">${escapeHtml(String(result.archive || ''))}</span>
+            </div>
+            ${snapshotHtml}
+        </div>
+        <div class="import-plan-body"></div>
+        <p class="import-plan-note" data-i18n="upload.importBackup.doneNote">${t('upload.importBackup.doneNote')}</p>
+    `;
+
+    const footerHtml = `
+        <button class="btn btn-secondary btn-cancel-import" data-i18n="common.close">${t('common.close')}</button>
+    `;
+
+    const { modal, closeModal } = createImportModal('upload.importBackup.resultTitle', bodyHtml, footerHtml);
+    renderImportPlan(modal.querySelector('.import-plan-body'), result);
+    modal.querySelector('.btn-cancel-import')?.addEventListener('click', closeModal);
+}
+
+/**
  * 动态更新提供商筛选下拉框选项
  * @param {Array} providerConfigs - 提供商配置列表
  */
@@ -1415,5 +1711,7 @@ export {
     copyConfigContent,
     reloadConfig,
     deleteUnboundConfigs,
-    updateProviderFilterOptions
+    updateProviderFilterOptions,
+    openBackupPicker,
+    previewBackupImport
 };

@@ -828,6 +828,87 @@
     transform: none;
 }
 
+/* 配置列表头部的导入备份按钮样式 */
+.btn-import-backup {
+    background: linear-gradient(135deg, #6366f1 0%, #4338ca 100%);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 12px;
+    cursor: pointer;
+    margin-left: 8px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+    font-weight: 500;
+}
+
+.btn-import-backup:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+    background: linear-gradient(135deg, #4338ca 0%, #6366f1 100%);
+}
+
+.btn-import-backup:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* 导入备份模态框：复用删除确认框的骨架，只改配色和列表部分 */
+.delete-confirm-modal.import-backup .delete-modal-content { border-color: #6366f1; box-shadow: 0 25px 80px rgba(99, 102, 241, 0.3); }
+
+.import-plan-options {
+    display: flex; flex-direction: column; gap: 0.75rem;
+    background: var(--bg-secondary); border: 1px solid var(--border-color);
+    border-radius: 0.5rem; padding: 1rem; margin-bottom: 1.5rem;
+}
+
+.import-plan-options label {
+    display: flex; align-items: flex-start; gap: 0.6rem;
+    font-size: 0.875rem; cursor: pointer; line-height: 1.5;
+}
+
+.import-plan-options select { max-width: 220px; }
+
+.import-plan-list {
+    background: var(--bg-secondary); border: 1px solid var(--border-color);
+    border-radius: 0.5rem; max-height: 260px; overflow-y: auto;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.75rem;
+}
+
+.import-plan-row {
+    display: flex; align-items: baseline; gap: 0.5rem;
+    padding: 0.4rem 0.75rem; border-bottom: 1px solid var(--border-color);
+    word-break: break-all;
+}
+
+.import-plan-row:last-child { border-bottom: none; }
+.import-plan-row .plan-arrow { color: var(--text-secondary); flex: none; }
+.import-plan-row .plan-target { color: var(--success-text); }
+.import-plan-row.is-routed .plan-target { color: #6366f1; font-weight: 600; }
+.import-plan-row.is-skipped .plan-target,
+.import-plan-row.is-skipped .plan-source { color: var(--text-secondary); text-decoration: line-through; }
+.import-plan-row.is-failed .plan-target { color: var(--danger-color); }
+
+.import-plan-summary {
+    display: flex; flex-wrap: wrap; gap: 0.75rem;
+    margin-bottom: 1rem; font-size: 0.8125rem;
+}
+
+.import-plan-summary span {
+    padding: 0.25rem 0.6rem; border-radius: 999px; background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+}
+
+.import-plan-note {
+    font-size: 0.8125rem; color: var(--text-secondary);
+    margin-top: 1rem; line-height: 1.6;
+}
+
 /* 暗黑主题适配 */
 [data-theme="dark"] .status-used { background: var(--success-bg); color: var(--success-text); }
 [data-theme="dark"] .status-unused { background: var(--warning-bg); color: var(--warning-text); }
@@ -838,3 +919,6 @@
 [data-theme="dark"] .delete-confirm-modal.used .delete-modal-header { background: linear-gradient(135deg, var(--danger-bg) 0%, var(--bg-primary) 100%); }
 [data-theme="dark"] .delete-confirm-modal.unused .delete-modal-header { background: linear-gradient(135deg, var(--warning-bg) 0%, var(--bg-primary) 100%); }
 [data-theme="dark"] .config-info { background: var(--bg-secondary); border-color: var(--border-color); }
+[data-theme="dark"] .import-plan-options,
+[data-theme="dark"] .import-plan-list { background: var(--bg-secondary); border-color: var(--border-color); }
+[data-theme="dark"] .delete-confirm-modal.import-backup .delete-modal-header { background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-primary) 100%); }

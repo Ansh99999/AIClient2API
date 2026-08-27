@@ -53,6 +53,10 @@
                     <button class="btn-download" id="downloadAllConfigs" aria-label="Download All Configs" data-i18n-aria-label="upload.downloadAll">
                         <i class="fas fa-file-archive"></i> <span data-i18n="upload.downloadAll">打包下载</span>
                     </button>
+                    <button class="btn-import-backup" id="importBackupBtn" data-i18n-title="upload.importBackup.hint" title="导入备份包，配置会还原到各自的位置" aria-label="Import Backup" data-i18n-aria-label="upload.importBackup">
+                        <i class="fas fa-file-import"></i> <span data-i18n="upload.importBackup">导入备份</span>
+                    </button>
+                    <input type="file" id="importBackupFile" accept=".zip,application/zip,application/x-zip-compressed" hidden>
                 </div>
             </div>
             <div id="configList" class="config-list">

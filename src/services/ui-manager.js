@@ -311,6 +311,11 @@ export async function handleUIApiRequests(method, pathParam, req, res, currentCo
         return await uploadConfigApi.handleDownloadAllConfigs(req, res);
     }
 
+    // Import a configs backup archive (zip) and restore it into place
+    if (method === 'POST' && pathParam === '/api/upload-configs/import-backup') {
+        return await uploadConfigApi.handleImportBackup(req, res);
+    }
+
     // Delete all unbound config files
     if (method === 'DELETE' && pathParam === '/api/upload-configs/delete-unbound') {
         return await uploadConfigApi.handleDeleteUnboundConfigs(req, res, currentConfig, providerPoolManager);
