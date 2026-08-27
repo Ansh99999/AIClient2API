@@ -239,14 +239,43 @@ describe('POST /api/upload-configs/import-backup', () => {
 
     test('随便一个 zip 不会被整包倒进 configs/', async () => {
         const { status, body } = await importBackup(makeZip({
-            'src/core/master.js': 'x',
-            'README.md': 'hello'
+            'holiday/photo.png': 'not an image really',
+            'notes.md': 'hello'
         }));
 
         expect(status).toBe(400);
         expect(body.error.message).toMatch(/configs backup/);
         expect(body.skipped.map(item => item.reason)).toEqual(['not_a_backup', 'not_a_backup']);
-        expect(await readConfigFile('src/core/master.js')).toBeNull();
+        expect(await readConfigFile('holiday/photo.png')).toBeNull();
+    });
+
+    test('v2.10.0 之前的整个项目目录备份只恢复配置', async () => {
+        const zip = makeZip({
+            'config.json': { REQUIRED_API_KEY: 'old-era' },
+            'provider_pools.json': { 'gemini-cli-oauth': [] },
+            'gemini_oauth_creds.json': { access_token: 'old-cred' },
+            'src/api-server.js': 'console.log(1)',
+            'static/app/app.js': 'console.log(2)',
+            'package.json': { name: 'aiclient2api' },
+            'README.md': '# docs'
+        });
+
+        const { status, body } = await importBackup(zip);
+
+        expect(status).toBe(200);
+        expect(body.style).toBe('configs-relative');
+        expect(body.imported.map(item => item.target).sort()).toEqual([
+            'configs/config.json',
+            'configs/gemini/gemini_oauth_creds.json',
+            'configs/provider_pools.json'
+        ]);
+        expect(body.skipped.map(item => item.reason)).toEqual(['app_file', 'app_file', 'app_file', 'app_file']);
+
+        // 程序本体一个字节都不该落进 configs/
+        expect(await readConfigFile('src/api-server.js')).toBeNull();
+        expect(await readConfigFile('package.json')).toBeNull();
+        expect(JSON.parse(await readConfigFile('config.json'))).toEqual({ REQUIRED_API_KEY: 'old-era' });
+        expect(await readConfigFile('gemini/gemini_oauth_creds.json')).toContain('old-cred');
     });
 
     test('不是 zip 就直接拒绝', async () => {
@@ -260,8 +289,24 @@ describe('POST /api/upload-configs/import-backup', () => {
         expect(body.error.message).toMatch(/\.zip/);
     });
 
+    test('解压再重新打包多出来的那层目录不影响恢复', async () => {
+        const zip = makeZip({
+            'configs_backup_2026-03-01/config.json': { rewrapped: true },
+            'configs_backup_2026-03-01/kiro/1700_acct/kiro-auth-token.json': { refreshToken: 'x' }
+        });
+
+        const { status, body } = await importBackup(zip);
+
+        expect(status).toBe(200);
+        expect(body.imported.map(item => item.target).sort()).toEqual([
+            'configs/config.json',
+            'configs/kiro/1700_acct/kiro-auth-token.json'
+        ]);
+        expect(JSON.parse(await readConfigFile('config.json'))).toEqual({ rewrapped: true });
+    });
+
     test('包里没有任何配置时给出明确的错误', async () => {
-        const { status, body } = await importBackup(makeZip({ 'logs/2026-08-27.log': 'x' }));
+        const { status, body } = await importBackup(makeZip({ 'holiday/photo.png': 'x' }));
 
         expect(status).toBe(400);
         expect(body.error.message).toMatch(/configs backup/);

@@ -6,6 +6,7 @@ import {
     planEntryTarget,
     planRestore,
     looksLikeConfigsEntry,
+    isAppPath,
     ROOT_CONFIG_FILES,
     SENSITIVE_FILES
 } from '../src/utils/backup-restore.js';
@@ -91,6 +92,30 @@ describe('resolveBackupRoot', () => {
     test('只有一个名叫 configs 的文件时不会算出空路径', () => {
         const result = resolveBackupRoot(['backup/configs']);
         expect(result.entries).toEqual([]);
+    });
+
+    test('解压再重新打包多出来的那层目录会被剥掉', () => {
+        const result = resolveBackupRoot([
+            'configs_backup_2026-03-01/config.json',
+            'configs_backup_2026-03-01/kiro/a/creds.json'
+        ]);
+        expect(result.style).toBe('configs-relative');
+        expect(result.entries.map(e => e.relative)).toEqual(['config.json', 'kiro/a/creds.json']);
+    });
+
+    test('多包了两层也剥得掉', () => {
+        const result = resolveBackupRoot(['outer/inner/config.json']);
+        expect(result.entries.map(e => e.relative)).toEqual(['config.json']);
+    });
+
+    test('提供商目录不会被误当成多出来的那层', () => {
+        const result = resolveBackupRoot(['kiro/a/creds.json', 'kiro/b/creds.json']);
+        expect(result.entries.map(e => e.relative)).toEqual(['kiro/a/creds.json', 'kiro/b/creds.json']);
+    });
+
+    test('剥掉之后依然认不出配置就不剥', () => {
+        const result = resolveBackupRoot(['holiday/photo.png', 'holiday/video.mp4']);
+        expect(result.entries.map(e => e.relative)).toEqual(['holiday/photo.png', 'holiday/video.mp4']);
     });
 });
 
@@ -218,7 +243,7 @@ describe('planRestore', () => {
     });
 
     test('压缩包里认不出任何配置时整包拒绝', () => {
-        const plan = planRestore(['src/core/master.js', 'README.md']);
+        const plan = planRestore(['holiday/photo.png', 'notes.md']);
         expect(plan.planned).toEqual([]);
         expect(plan.skipped.map(s => s.reason)).toEqual(['not_a_backup', 'not_a_backup']);
     });
@@ -256,5 +281,92 @@ describe('looksLikeConfigsEntry', () => {
         expect(looksLikeConfigsEntry('src/core/master.js')).toBe(false);
         expect(looksLikeConfigsEntry('README.md')).toBe(false);
         expect(looksLikeConfigsEntry('logs/2026-08-27.log')).toBe(false);
+    });
+
+    test('认得各家 CLI 带点的凭据目录', () => {
+        expect(looksLikeConfigsEntry('.gemini/oauth_creds.json')).toBe(true);
+        expect(looksLikeConfigsEntry('.codex/auth.json')).toBe(true);
+    });
+});
+
+describe('isAppPath', () => {
+    test('程序本体的目录', () => {
+        expect(isAppPath('src/core/master.js')).toBe(true);
+        expect(isAppPath('static/app/i18n.js')).toBe(true);
+        expect(isAppPath('node_modules/adm-zip/index.js')).toBe(true);
+        expect(isAppPath('logs/2026-08-27.log')).toBe(true);
+    });
+
+    test('程序本体的根目录文件', () => {
+        expect(isAppPath('package.json')).toBe(true);
+        expect(isAppPath('README.md')).toBe(true);
+        expect(isAppPath('VERSION')).toBe(true);
+        expect(isAppPath('run-docker.sh')).toBe(true);
+    });
+
+    test('配置文件和凭据不算', () => {
+        expect(isAppPath('config.json')).toBe(false);
+        expect(isAppPath('provider_pools.json')).toBe(false);
+        expect(isAppPath('pwd')).toBe(false);
+        expect(isAppPath('kiro/a/creds.json')).toBe(false);
+    });
+});
+
+/**
+ * v2.10.0 之前配置文件放在项目根目录，那个年代的手工备份
+ * 常常是整个项目目录的压缩包，得只挑出配置来恢复
+ */
+describe('v2.10.0 之前的老备份', () => {
+    test('整个项目根目录的压缩包只恢复配置，程序本体挑出去', () => {
+        const plan = planRestore([
+            'config.json',
+            'provider_pools.json',
+            'pwd',
+            'src/api-server.js',
+            'static/app/app.js',
+            'tests/api-integration.test.js',
+            'package.json',
+            'README.md',
+            'VERSION',
+            'run-docker.sh',
+            'config.json.example'
+        ], { includeSensitive: true });
+
+        expect(plan.planned.map(p => p.target)).toEqual([
+            'configs/config.json',
+            'configs/provider_pools.json',
+            'configs/pwd',
+            'configs/config.json.example'
+        ]);
+        expect(plan.skipped.every(s => s.reason === 'app_file')).toBe(true);
+    });
+
+    test('老备份里散落的凭据也进得了对应的提供商目录', () => {
+        const plan = planRestore([
+            'config.json',
+            'src/api-server.js',
+            'gemini_oauth_creds.json',
+            'kiro-auth-token.json'
+        ], { now: 1700000000000 });
+
+        expect(plan.planned.map(p => p.target)).toEqual([
+            'configs/config.json',
+            'configs/gemini/gemini_oauth_creds.json',
+            'configs/kiro/1700000000000_kiro-auth-token/kiro-auth-token.json'
+        ]);
+    });
+
+    test('直接从 CLI 的凭据目录导入，点号目录会被抹平', () => {
+        const plan = planRestore(['.gemini/oauth_creds.json', '.codex/auth.json']);
+        expect(plan.planned).toEqual([
+            expect.objectContaining({ target: 'configs/gemini/oauth_creds.json', routed: true }),
+            expect.objectContaining({ target: 'configs/codex/auth.json', routed: true })
+        ]);
+    });
+
+    test('只有程序本体、没有任何配置的压缩包整包拒绝', () => {
+        const plan = planRestore(['src/api-server.js', 'package.json']);
+        expect(plan.planned).toEqual([]);
+        expect(plan.skipped.map(s => s.reason)).toEqual(['app_file', 'app_file']);
     });
 });
