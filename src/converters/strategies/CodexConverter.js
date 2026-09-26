@@ -247,8 +247,10 @@ export class CodexConverter extends BaseConverter {
         // 确保 input 数组中的每个项都有 type: "message"，并将系统角色转换为开发者角色
         if (codexRequest.input && Array.isArray(codexRequest.input)) {
             codexRequest.input = codexRequest.input.filter(item => {
-                // 如果 instructions 已存在，过滤掉 input 中的 system/developer 消息以避免重复
-                if (codexRequest.instructions && (item.role === 'system' || item.role === 'developer')) {
+                // 如果 instructions 已存在，仅过滤普通 system/developer 消息以避免重复。
+                // additional_tools 等特殊输入项即使使用 developer 角色也必须保留。
+                const isMessage = !item?.type || item.type === 'message';
+                if (codexRequest.instructions && isMessage && (item.role === 'system' || item.role === 'developer')) {
                     return false;
                 }
                 return true;

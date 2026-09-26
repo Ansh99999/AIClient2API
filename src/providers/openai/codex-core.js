@@ -16,7 +16,7 @@ import {normalizeCodexInstructions} from './codex-request-utils.js';
 const baseModels = getProviderModels(MODEL_PROVIDER.CODEX_API);
 const fastModels = baseModels.map(m => `${m}-fast`);
 const CODEX_MODELS = [...new Set([...baseModels, ...fastModels])];
-const CODEX_VERSION = '0.144.1';
+const CODEX_VERSION = '0.156.1';
 export const IMAGE_MODELS = new Set(['gpt-image-2']);
 
 function normalizeCodexTerminalError(parsed) {

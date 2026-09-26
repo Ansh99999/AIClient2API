@@ -838,33 +838,70 @@ function getPluginHookRequestId(config) {
  */
 export function createEmptyUpstreamResponseError(providerLabel = 'Upstream') {
     const error = new Error(`[${providerLabel}] Upstream returned an empty response (no text, tool call, or thinking content).`);
+    // Keep the legacy flag for provider cores that already inspect it.
     error.isEmptyUpstreamResponse = true;
+    error.isRetryableUpstreamResponseFailure = true;
+    error.responseFailureCode = 'EMPTY_RESPONSE';
+    error.responseFailureLabel = 'empty response';
     error.shouldSwitchCredential = true;
     error.skipErrorCount = true;
     return error;
 }
 
 /**
- * 针对上游「空响应」（error.isEmptyUpstreamResponse）计算是否应该重试，并在应该重试时尝试获取一个
- * 备用的服务实例。重试预算由 CONFIG.EMPTY_RESPONSE_MAX_RETRIES 控制，与凭证切换预算
- * （CREDENTIAL_SWITCH_MAX_RETRIES）完全独立计数，避免一次空回把凭证切换预算耗光。
- * 该机制不绑定具体 provider：任何 provider 抛出带 isEmptyUpstreamResponse 标记的错误都会走到这里。
- *
- * @param {string} [providerLabel='Upstream'] - 用于日志的 provider 标签，如 'Kiro'、'Qwen' 等
- * @returns {Promise<{retry: boolean, result?: object, emptyResponseRetry?: number}>}
+ * 让协议策略识别原生响应中的终止失败。common 只消费归一化结果，不感知各协议的枚举值。
  */
-async function resolveEmptyUpstreamResponseRetry(CONFIG, model, attemptsMade, logPrefix, providerLabel = 'Upstream') {
-    const emptyRetryMax = CONFIG?.EMPTY_RESPONSE_MAX_RETRIES ?? 2;
-    const emptyRetryDelayMs = CONFIG?.EMPTY_RESPONSE_RETRY_DELAY_MS ?? 500;
+export function classifyUpstreamResponseFailure(response, provider) {
+    const strategy = ProviderStrategyFactory.getStrategy(getProtocolPrefix(provider));
+    return strategy.classifyResponseFailure(response);
+}
 
-    if (attemptsMade >= emptyRetryMax) {
-        logger.error(`${logPrefix} ${providerLabel} empty response persisted after ${emptyRetryMax} retr${emptyRetryMax === 1 ? 'y' : 'ies'} (same request body). Giving up.`);
+/**
+ * 将协议策略返回的失败描述转换为请求层可处理的 Error。
+ */
+export function createUpstreamResponseFailureError(providerLabel = 'Upstream', failure = {}) {
+    const code = failure.code || 'UPSTREAM_RESPONSE_FAILURE';
+    const detail = typeof failure.message === 'string' && failure.message.trim()
+        ? `: ${failure.message.trim()}`
+        : '';
+    const error = new Error(`[${providerLabel}] Upstream returned ${code}${detail}`);
+    error.isRetryableUpstreamResponseFailure = failure.retryable === true;
+    error.responseFailureCode = code;
+    error.responseFailureLabel = failure.label || code;
+    error.responseFailureCategory = failure.retryCategory || null;
+    error.shouldSwitchCredential = failure.shouldSwitchCredential === true;
+    error.skipErrorCount = failure.skipErrorCount === true;
+    return error;
+}
+
+function throwIfUpstreamResponseFailed(response, provider, providerLabel = provider) {
+    const failure = classifyUpstreamResponseFailure(response, provider);
+    if (failure) {
+        throw createUpstreamResponseFailureError(providerLabel, failure);
+    }
+}
+
+/**
+ * 针对可重试的上游响应失败计算是否应该重试，并在应该重试时获取服务实例。
+ * 为保持配置兼容，当前使用 EMPTY_RESPONSE_MAX_RETRIES / EMPTY_RESPONSE_RETRY_DELAY_MS；
+ * 该预算与凭证切换预算（CREDENTIAL_SWITCH_MAX_RETRIES）独立计数。
+ *
+ * @param {string} [providerLabel='Upstream'] - 用于日志的 provider 标签
+ * @param {string} [failureLabel='upstream response failure'] - 归一化失败类型
+ * @returns {Promise<{retry: boolean, result?: object, responseFailureRetry?: number}>}
+ */
+async function resolveRetryableUpstreamResponse(CONFIG, model, attemptsMade, logPrefix, providerLabel = 'Upstream', failureLabel = 'upstream response failure') {
+    const retryMax = CONFIG?.EMPTY_RESPONSE_MAX_RETRIES ?? 2;
+    const retryDelayMs = CONFIG?.EMPTY_RESPONSE_RETRY_DELAY_MS ?? 500;
+
+    if (attemptsMade >= retryMax) {
+        logger.error(`${logPrefix} ${providerLabel} ${failureLabel} persisted after ${retryMax} retr${retryMax === 1 ? 'y' : 'ies'} (same request body). Giving up.`);
         return { retry: false };
     }
 
-    logger.warn(`${logPrefix} ${providerLabel} empty response detected (no text/tool/thinking content). Retrying with the same request body (${attemptsMade + 1}/${emptyRetryMax})...`);
-    if (emptyRetryDelayMs > 0) {
-        await new Promise(resolve => setTimeout(resolve, emptyRetryDelayMs));
+    logger.warn(`${logPrefix} ${providerLabel} ${failureLabel} detected. Retrying with the same request body (${attemptsMade + 1}/${retryMax})...`);
+    if (retryDelayMs > 0) {
+        await new Promise(resolve => setTimeout(resolve, retryDelayMs));
     }
 
     try {
@@ -873,14 +910,14 @@ async function resolveEmptyUpstreamResponseRetry(CONFIG, model, attemptsMade, lo
         const result = await getApiServiceWithFallback(CONFIG, model, { acquireSlot: true });
 
         if (result && result.service) {
-            logger.info(`${logPrefix} Retrying empty ${providerLabel} response with credential: ${result.uuid} (provider: ${result.actualProviderType})`);
-            return { retry: true, result, emptyResponseRetry: attemptsMade + 1 };
+            logger.info(`${logPrefix} Retrying ${failureLabel} from ${providerLabel} with credential: ${result.uuid} (provider: ${result.actualProviderType})`);
+            return { retry: true, result, responseFailureRetry: attemptsMade + 1 };
         }
 
-        logger.warn(`${logPrefix} No alternative credential available for empty-response retry.`);
+        logger.warn(`${logPrefix} No service available for response-failure retry.`);
         return { retry: false };
     } catch (retryError) {
-        logger.error(`${logPrefix} Failed to get alternative service for empty-response retry:`, retryError.message);
+        logger.error(`${logPrefix} Failed to get service for response-failure retry:`, retryError.message);
         return { retry: false };
     }
 }
@@ -898,11 +935,12 @@ export async function handleStreamRequest(res, service, model, requestBody, from
     const currentRetry = retryContext?.currentRetry ?? 0;
     const CONFIG = retryContext?.CONFIG;
     // isRetry 用于判断当前调用是否是某次重试的递归帧：既包括凭证切换重试（currentRetry），
-    // 也包括上游空响应重试（emptyResponseRetry，参见 resolveEmptyUpstreamResponseRetry）。只有最外层（非重试）的调用帧才负责
+    // 也包括归一化的上游响应失败重试（responseFailureRetry）。只有最外层调用帧才负责
     // 绑定/解绑客户端事件监听器、发送响应头、以及在 finally 中写入流结束标记 / res.end()。
-    // 如果这里遗漏了 emptyResponseRetry，递归进去的重试帧会误以为自己是最外层，
-    // 导致外层和内层重复对同一个 res 做收尾（重复 res.end()），从而抛出 "write after end"。
-    const isRetry = currentRetry > 0 || (retryContext?.emptyResponseRetry ?? 0) > 0;
+    // 否则外层和内层会重复对同一个 res 做收尾，触发 "write after end"。
+    const isRetry = currentRetry > 0
+        || (retryContext?.responseFailureRetry ?? 0) > 0
+        || (retryContext?.emptyResponseRetry ?? 0) > 0;
     
     // 使用共享的 clientDisconnected 状态（如果是重试，继承上层的状态）
     let clientDisconnected = retryContext?.clientDisconnected || { value: false };
@@ -958,6 +996,14 @@ export async function handleStreamRequest(res, service, model, requestBody, from
                 break;
             }
             
+            // 由协议策略识别原生终止失败；必须在转换和写入客户端之前抛出，
+            // 才能安全重试且不会把失败伪装成成功的结束帧。
+            throwIfUpstreamResponseFailed(
+                nativeChunk,
+                toProvider,
+                customName ? `${toProvider}/${customName}` : toProvider
+            );
+
             // Extract text for logging purposes
             const chunkText = extractResponseText(nativeChunk, toProvider);
             if (chunkText && !Array.isArray(chunkText)) {
@@ -1117,22 +1163,21 @@ export async function handleStreamRequest(res, service, model, requestBody, from
             return;
         }
 
-        // 上游空响应（无文本/工具调用/思考内容）：使用独立的小额重试预算，
-        // 不占用凭证切换预算（CREDENTIAL_SWITCH_MAX_RETRIES），重试沿用同一份 requestBody，
-        // 不会让历史/token 变大。预算耗尽后直接返回明确错误，不再静默放行空的 end_turn。
-        // 任何 provider 只要抛出带 isEmptyUpstreamResponse 标记的错误都会走到这个分支（目前 Kiro 在用）。
-        if (error.isEmptyUpstreamResponse) {
-            const attemptsMade = retryContext?.emptyResponseRetry ?? 0;
-            const outcome = await resolveEmptyUpstreamResponseRetry(CONFIG, model, attemptsMade, '[Stream Retry]', toProvider);
+        // 协议策略识别出的可重试终止失败和 provider core 抛出的空响应共享独立的小额预算，
+        // 不占用凭证切换预算；重试沿用同一 requestBody，不增加会话历史。
+        if (error.isRetryableUpstreamResponseFailure || error.isEmptyUpstreamResponse) {
+            const attemptsMade = retryContext?.responseFailureRetry ?? retryContext?.emptyResponseRetry ?? 0;
+            const failureLabel = error.responseFailureLabel || 'upstream response failure';
+            const outcome = await resolveRetryableUpstreamResponse(CONFIG, model, attemptsMade, '[Stream Retry]', toProvider, failureLabel);
 
             if (outcome.retry) {
-                const { result, emptyResponseRetry } = outcome;
+                const { result, responseFailureRetry } = outcome;
                 const newRetryContext = {
                     ...retryContext,
                     CONFIG,
                     currentRetry,
                     maxRetries,
-                    emptyResponseRetry,
+                    responseFailureRetry,
                     clientDisconnected,
                     anyDataSent
                 };
@@ -1153,7 +1198,7 @@ export async function handleStreamRequest(res, service, model, requestBody, from
                 );
             }
 
-            const giveUpError = new Error(`${toProvider} upstream returned an empty response after ${attemptsMade} retr${attemptsMade === 1 ? 'y' : 'ies'} with the same request. Please try again, or /clear your session if this keeps happening.`);
+            const giveUpError = new Error(`${toProvider} upstream response failed with ${failureLabel} after ${attemptsMade} retr${attemptsMade === 1 ? 'y' : 'ies'} using the same request. Please try again, or /clear your session if this keeps happening.`);
             giveUpError.status = 502;
             const errorPayload = createStreamErrorResponse(giveUpError, fromProvider);
             if (!clientDisconnected.value && !res.writableEnded) {
@@ -1337,6 +1382,13 @@ export async function handleUnaryRequest(res, service, model, requestBody, fromP
         requestBody.model = model;
         // fs.writeFile('oldRequest'+Date.now()+'.json', JSON.stringify(requestBody));
         const nativeResponse = await service.generateContent(model, requestBody);
+
+        // 与流式链路一致，由协议策略在转换前识别原生终止失败。
+        throwIfUpstreamResponseFailed(
+            nativeResponse,
+            toProvider,
+            customName ? `${toProvider}/${customName}` : toProvider
+        );
         
         // 如果提供者内部发生了模型回退（如 Antigravity 自动降级），同步更新本地 model 变量
         // 这确保了后续的监控钩子和统计插件记录的是实际使用的模型
@@ -1385,22 +1437,21 @@ export async function handleUnaryRequest(res, service, model, requestBody, fromP
     } catch (error) {
         logger.error('\n[Server] Error during unary processing:', error.stack);
 
-        // 上游空响应（无文本/工具调用/思考内容）：使用独立的小额重试预算，
-        // 不占用凭证切换预算（CREDENTIAL_SWITCH_MAX_RETRIES），重试沿用同一份 requestBody，
-        // 不会让历史/token 变大。预算耗尽后直接返回明确错误，不再静默放行空响应。
-        // 任何 provider 只要抛出带 isEmptyUpstreamResponse 标记的错误都会走到这个分支（目前 Kiro 在用）。
-        if (error.isEmptyUpstreamResponse) {
-            const attemptsMade = retryContext?.emptyResponseRetry ?? 0;
-            const outcome = await resolveEmptyUpstreamResponseRetry(CONFIG, model, attemptsMade, '[Unary Retry]', toProvider);
+        // 协议策略识别出的可重试终止失败和 provider core 抛出的空响应共享独立的小额预算，
+        // 不占用凭证切换预算；重试沿用同一 requestBody，不增加会话历史。
+        if (error.isRetryableUpstreamResponseFailure || error.isEmptyUpstreamResponse) {
+            const attemptsMade = retryContext?.responseFailureRetry ?? retryContext?.emptyResponseRetry ?? 0;
+            const failureLabel = error.responseFailureLabel || 'upstream response failure';
+            const outcome = await resolveRetryableUpstreamResponse(CONFIG, model, attemptsMade, '[Unary Retry]', toProvider, failureLabel);
 
             if (outcome.retry) {
-                const { result, emptyResponseRetry } = outcome;
+                const { result, responseFailureRetry } = outcome;
                 const newRetryContext = {
                     ...retryContext,
                     CONFIG,
                     currentRetry,
                     maxRetries,
-                    emptyResponseRetry
+                    responseFailureRetry
                 };
 
                 return await handleUnaryRequest(
@@ -1419,7 +1470,7 @@ export async function handleUnaryRequest(res, service, model, requestBody, fromP
                 );
             }
 
-            const giveUpError = new Error(`${toProvider} upstream returned an empty response after ${attemptsMade} retr${attemptsMade === 1 ? 'y' : 'ies'} with the same request. Please try again, or /clear your session if this keeps happening.`);
+            const giveUpError = new Error(`${toProvider} upstream response failed with ${failureLabel} after ${attemptsMade} retr${attemptsMade === 1 ? 'y' : 'ies'} using the same request. Please try again, or /clear your session if this keeps happening.`);
             giveUpError.status = 502;
             const errorResponse = createErrorResponse(giveUpError, fromProvider);
             await handleUnifiedResponse(res, JSON.stringify(errorResponse), false, 502);

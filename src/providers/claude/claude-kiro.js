@@ -19,6 +19,12 @@ import {
 import { configureAxiosProxy, configureTLSSidecar, isTLSSidecarEnabledForProvider } from '../../utils/proxy-utils.js';
 import { isRetryableNetworkError, MODEL_PROVIDER, formatExpiryLog, getNormalizedErrorResponseText, buildHttpErrorReason, normalizeProviderErrorMessage, createEmptyUpstreamResponseError } from '../../utils/common.js';
 import { getProviderPoolManager } from '../../services/service-manager.js';
+import { buildKiroAdditionalModelRequestFields } from './kiro-effort.js';
+import {
+    resolveKiroRequestProfileArn,
+    shouldDiscoverKiroProfile,
+    shouldRouteBuilderToCodeWhisperer
+} from './kiro-profile.js';
 
 const KIRO_THINKING = {
     MIN_BUDGET_TOKENS: 1024,
@@ -36,9 +42,13 @@ const KIRO_CONSTANTS = {
     REFRESH_IDC_URL: 'https://oidc.{{region}}.amazonaws.com/token',
     BASE_URL: 'https://q.{{region}}.amazonaws.com/generateAssistantResponse',
     BASE_RUNTIME_URL: 'https://q.{{region}}.amazonaws.com/generateAssistantResponse',
+    CODEWHISPERER_BASE_URL: 'https://codewhisperer.{{region}}.amazonaws.com/generateAssistantResponse',
+    // 路径大小写敏感，小写会返回 UnknownOperationException
+    LIST_PROFILES_URL: 'https://codewhisperer.{{region}}.amazonaws.com/ListAvailableProfiles',
     DEFAULT_MODEL_NAME: 'claude-sonnet-4-5',
     AXIOS_TIMEOUT: 120000, // 2 minutes timeout for normal requests
     TOKEN_REFRESH_TIMEOUT: 15000, // 15 seconds timeout for token refresh (shorter to avoid blocking)
+    LIST_PROFILES_TIMEOUT: 10000, // 凭证装载期同步 await，不能久等
     USER_AGENT: 'KiroIDE',
     KIRO_VERSION: '0.11.63', //升级到新版本会导致aws用不了，需要找新接口
     CONTENT_TYPE_JSON: 'application/json',
@@ -716,6 +726,27 @@ export class KiroApiService {
         return configureTLSSidecar(axiosConfig, this.config, this.config.MODEL_PROVIDER || MODEL_PROVIDER.KIRO_API);
     }
 
+    async _requestWithBuilderEndpointRouting(axiosConfig, requestData) {
+        const routeToCodeWhisperer = shouldRouteBuilderToCodeWhisperer({
+            authMethod: this.authMethod,
+            profileArn: this.profileArn,
+            requestUrl: axiosConfig.url
+        });
+        if (!routeToCodeWhisperer) {
+            return await this.axiosInstance.request(axiosConfig);
+        }
+
+        const routedData = { ...requestData };
+        delete routedData.profileArn;
+        const routedConfig = {
+            ...axiosConfig,
+            url: this.codewhispererBaseUrl,
+            data: routedData
+        };
+        logger.info('[Kiro] Routing profileless Builder ID request through CodeWhisperer.');
+        return await this.axiosInstance.request(routedConfig);
+    }
+
 /**
  * 加载凭证信息（不执行刷新）
  */
@@ -839,8 +870,109 @@ async loadCredentials() {
         this.refreshUrl = (this.config.KIRO_REFRESH_URL || KIRO_CONSTANTS.REFRESH_URL).replace("{{region}}", this.region);
         this.refreshIDCUrl = (this.config.KIRO_REFRESH_IDC_URL || KIRO_CONSTANTS.REFRESH_IDC_URL).replace("{{region}}", this.idcRegion);
         this.baseUrl = (this.config.KIRO_BASE_URL || defaultBaseUrl).replace("{{region}}", this.region);
+        this.codewhispererBaseUrl = KIRO_CONSTANTS.CODEWHISPERER_BASE_URL.replace("{{region}}", this.region);
+
+        // AWS OIDC 凭证在装载期尝试发现 profileArn；无法发现时，
+        // profileless Builder ID 仍会路由到无需 profileArn 的端点。
+        await this._ensureProfileArn(isSocialAuth);
     } catch (error) {
         logger.warn(`[Kiro Auth] Error during credential loading: ${error.message}`);
+    }
+}
+
+/**
+ * 解析 this.profileArn（唯一决策点）。
+ * profileArn 是 CodeWhisperer 的订阅归属标识，缺失时上游返回 403 AccessDeniedException。
+ * social 凭证由 Kiro auth 服务随刷新响应下发该字段；AWS OIDC 刷新响应
+ * 不包含它，需要自行查询。查询失败时保持 profileless，后续 Builder ID 请求
+ * 会路由到无需该字段的端点。
+ * @param {boolean} isSocialAuth
+ * @private
+ */
+async _ensureProfileArn(isSocialAuth) {
+    // social token 非 AWS 签发，ListAvailableProfiles 对它不适用。
+    // Builder ID 与 Enterprise IdC 共用 AWS OIDC 凭证形态，不能仅凭
+    // authMethod/clientSecret 区分；统一尝试发现，失败时由请求路由安全降级。
+    if (!shouldDiscoverKiroProfile({ isSocialAuth, profileArn: this.profileArn })) {
+        return;
+    }
+
+    // 发现结果由 _doTokenRefresh 的回写落入凭证文件，每份凭证通常只需发现一次。
+    const discovered = await this._discoverProfileArn();
+    if (discovered) {
+        this.profileArn = discovered;
+        logger.info(`[Kiro Auth] profileArn discovered: ${discovered}`);
+    }
+}
+
+/**
+ * 查询当前 token 可用的 profile。该接口不需要 profileArn，可用于自举。
+ * 失败返回 null 而不抛错：调用方在凭证装载路径上，抛错会阻塞初始化；包装异常还会
+ * 丢掉 status，使上层按状态码分流的重试 / 切凭证失效。
+ * @returns {Promise<string|null>}
+ * @private
+ */
+async _discoverProfileArn() {
+    // 无可用 token 时调用必然失败；刷新成功后 _doTokenRefresh 会立即重试。
+    if (!this.accessToken || this.isTokenExpired()) {
+        logger.debug('[Kiro Auth] Skip profileArn discovery: no usable access token yet.');
+        return null;
+    }
+
+    const url = KIRO_CONSTANTS.LIST_PROFILES_URL.replace('{{region}}', this.region);
+    const machineId = generateMachineIdFromConfig({
+        uuid: this.uuid,
+        profileArn: this.profileArn,
+        clientId: this.clientId
+    });
+    const { osName, nodeVersion } = getSystemRuntimeInfo();
+    const kiroVersion = KIRO_CONSTANTS.KIRO_VERSION;
+
+    const axiosConfig = {
+        method: 'post',
+        url,
+        data: { maxResults: 10 },
+        timeout: KIRO_CONSTANTS.LIST_PROFILES_TIMEOUT,
+        headers: {
+            'Content-Type': KIRO_CONSTANTS.CONTENT_TYPE_JSON,
+            'Accept': KIRO_CONSTANTS.ACCEPT_JSON,
+            'Authorization': `Bearer ${this.accessToken}`,
+            'amz-sdk-invocation-id': uuidv4(),
+            'amz-sdk-request': 'attempt=1; max=1',
+            'x-amz-user-agent': `aws-sdk-js/1.0.34 KiroIDE-${kiroVersion}-${machineId}`,
+            'user-agent': `aws-sdk-js/1.0.34 ua/2.1 os/${osName} lang/js md/nodejs#${nodeVersion} api/codewhisperer#1.0.34 m/E KiroIDE-${kiroVersion}-${machineId}`,
+            'Connection': 'close'
+        }
+    };
+    this._applySidecar(axiosConfig);
+
+    try {
+        const response = await axios.request(axiosConfig);
+        const profiles = response.data?.profiles;
+        if (!Array.isArray(profiles) || profiles.length === 0) {
+            logger.warn('[Kiro Auth] ListAvailableProfiles returned no profiles.');
+            return null;
+        }
+
+        // 优先取与当前 region 匹配的，否则回退到第一个
+        const matched = profiles.find(p => p?.arn && typeof p.arn === 'string' && p.arn.includes(`:${this.region}:`));
+        const picked = matched || profiles.find(p => p?.arn);
+        if (!picked?.arn) {
+            logger.warn('[Kiro Auth] ListAvailableProfiles returned profiles without arn.');
+            return null;
+        }
+
+        if (profiles.length > 1) {
+            const all = profiles.map(p => p?.arn).filter(Boolean).join(', ');
+            logger.info(`[Kiro Auth] ${profiles.length} profiles available [${all}], selected ${picked.profileName || picked.arn}.`);
+        }
+        return picked.arn;
+    } catch (error) {
+        // 静默降级，由上层的 403 处理接手。
+        const status = error.response?.status;
+        const detail = error.response?.data?.message || error.message;
+        logger.warn(`[Kiro Auth] profileArn discovery failed${status ? ` (HTTP ${status})` : ''}: ${detail}`);
+        return null;
     }
 }
 
@@ -986,6 +1118,11 @@ async saveCredentialsToFile(filePath, newData) {
                 this.expiresAt = expiresAt;
                 logger.info('[Kiro Auth] Access token refreshed successfully');
 
+                // IdC refresh responses do not include profileArn. Discover it now that
+                // the fresh token and expiry are installed, before the first generation
+                // request and before persisting the refreshed credentials.
+                await this._ensureProfileArn(isSocialAuth);
+
                 const updatedTokenData = {
                     accessToken: this.accessToken,
                     refreshToken: this.refreshToken,
@@ -1005,8 +1142,11 @@ async saveCredentialsToFile(filePath, newData) {
                 throw new Error('Invalid refresh response: Missing accessToken');
             }
         } catch (error) {
-            logger.error('[Kiro Auth] Token refresh failed:', error.message);
-            throw new Error(`Token refresh failed: ${error.message}`);
+            const status = error.response?.status;
+            const responseBodyPreview = await getKiroErrorResponsePreview(error);
+            const detail = responseBodyPreview || error.message;
+            logger.error(`[Kiro Auth] Token refresh failed${status ? ` (HTTP ${status})` : ''}: ${detail}`);
+            throw new Error(`Token refresh failed${status ? ` (HTTP ${status})` : ''}: ${detail}`);
         }
     }
 
@@ -1177,37 +1317,6 @@ async saveCredentialsToFile(filePath, newData) {
     /**
      * Build CodeWhisperer request from OpenAI messages
      */
-
-    _isReasoningModel(model) {
-        if (!model) return false;
-        const m = model.toLowerCase();
-        return m.includes('gpt-5.6') || m.includes('gpt-5_6');
-    }
-
-    _resolveEffort(model, thinking, outputConfig = null, reasoningEffort = null) {
-        const explicitEffort = reasoningEffort || outputConfig?.effort;
-        const isReasoning = this._isReasoningModel(model);
-
-        if (isReasoning) {
-            if (thinking?.type === 'disabled') return 'none';
-            if (explicitEffort) {
-                const valid = ['none', 'low', 'medium', 'high', 'xhigh', 'max'];
-                return valid.includes(explicitEffort.toLowerCase()) ? explicitEffort.toLowerCase() : 'high';
-            }
-            return ''; // Omit so backend uses default 'high'
-        }
-
-        if (explicitEffort) {
-            const valid = ['low', 'medium', 'high', 'xhigh', 'max'];
-            return valid.includes(explicitEffort.toLowerCase()) ? explicitEffort.toLowerCase() : 'medium';
-        }
-
-        if (thinking && (thinking.type === 'enabled' || thinking.type === 'adaptive')) {
-            return 'medium';
-        }
-
-        return '';
-    }
 
     async buildCodewhispererRequest(messages, model, tools = null, inSystemPrompt = null, thinking = null, outputConfig = null, reasoningEffort = null) {
         const conversationId = uuidv4();
@@ -1719,21 +1828,19 @@ async saveCredentialsToFile(filePath, newData) {
 
         request.conversationState.currentMessage.userInputMessage = userInputMessage;
 
-        const resolvedEffort = this._resolveEffort(codewhispererModel, thinking, outputConfig, reasoningEffort);
-        if (resolvedEffort) {
-            if (this._isReasoningModel(codewhispererModel)) {
-                request.additionalModelRequestFields = {
-                    reasoning: { effort: resolvedEffort }
-                };
-            } else {
-                request.additionalModelRequestFields = {
-                    output_config: { effort: resolvedEffort }
-                };
-            }
+        const additionalModelRequestFields = buildKiroAdditionalModelRequestFields(
+            codewhispererModel,
+            thinking,
+            outputConfig,
+            reasoningEffort
+        );
+        if (additionalModelRequestFields) {
+            request.additionalModelRequestFields = additionalModelRequestFields;
         }
 
-        if (this.authMethod === KIRO_CONSTANTS.AUTH_METHOD_SOCIAL) {
-            request.profileArn = this.profileArn;
+        const requestProfileArn = resolveKiroRequestProfileArn(this.authMethod, this.profileArn);
+        if (requestProfileArn != null) {
+            request.profileArn = requestProfileArn;
         }
 
         Object.defineProperty(request, '_kiroToolNameMaps', {
@@ -1915,7 +2022,7 @@ async saveCredentialsToFile(filePath, newData) {
             const releaseThrottle = await acquireKiroRequestSlot(this.config);
             let response;
             try {
-                response = await this.axiosInstance.request(axiosConfig);
+                response = await this._requestWithBuilderEndpointRouting(axiosConfig, requestData);
             } finally {
                 releaseThrottle();
             }
@@ -2215,9 +2322,9 @@ async saveCredentialsToFile(filePath, newData) {
         try {
             // Verify usage limits to confirm quota exhaustion
             const usageLimits = await this.getUsageLimits();
-            const isQuotaExhausted = usageLimits?.usedCount >= usageLimits?.limitCount;
-            
-            logger.info(`[Kiro] Quota confirmed exhausted: ${usageLimits?.usedCount}/${usageLimits?.limitCount}`);
+            // 真实响应字段为 usageBreakdownList[].currentUsage / usageLimit
+            const breakdown = usageLimits?.usageBreakdownList?.[0];
+            logger.info(`[Kiro] Quota confirmed exhausted: ${breakdown?.currentUsage}/${breakdown?.usageLimit}`);
             // Calculate recovery time: 1st day of next month at 00:00:00 UTC
             const nextMonth = this._getNextMonthFirstDay();
             this._markCredentialUnhealthyWithRecovery(verifiedReason, error, nextMonth);
@@ -2525,7 +2632,7 @@ async saveCredentialsToFile(filePath, newData) {
             };
             this._applySidecar(axiosConfig);
             releaseThrottle = await acquireKiroRequestSlot(this.config);
-            const response = await this.axiosInstance.request(axiosConfig);
+            const response = await this._requestWithBuilderEndpointRouting(axiosConfig, requestData);
 
             stream = response.data;
             let buffer = Buffer.alloc(0);
@@ -3627,7 +3734,7 @@ async saveCredentialsToFile(filePath, newData) {
             origin: KIRO_CONSTANTS.ORIGIN_AI_EDITOR,
             resourceType: resourceType
         });
-         if (this.authMethod === KIRO_CONSTANTS.AUTH_METHOD_SOCIAL && this.profileArn) {
+        if (this.profileArn) {
             params.append('profileArn', this.profileArn);
         }
         const fullUrl = `${usageLimitsUrl}?${params.toString()}`;

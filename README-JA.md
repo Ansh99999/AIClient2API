@@ -82,6 +82,7 @@
     </td>
   </tr>
   -->
+  <!-- Atlas Cloud
   <tr>
     <td width="25%" align="center" valign="middle">
       <a href="https://www.atlascloud.ai/console/coding-plan">
@@ -92,6 +93,7 @@
       Atlas Cloud による本プロジェクトへのスポンサーに感謝します！Atlas Cloud は、開発者が動画生成、画像生成、および LLM API にアクセスするための单二の AI API を提供する<strong>全モーダル AI 推論プラットフォーム</strong>です。複数のベンダーの統合を管理する代わりに、一度接続するだけですべてのモダリティにわたる <strong>300 以上の厳選されたモデル</strong>に統合アクセスできます。よりリーズナブルな API アクセスのために、Atlas Cloud の新しい<a href="https://www.atlascloud.ai/console/coding-plan">コーディングプランプロモーション (coding plan)</a>をぜひチェックしてください。
     </td>
   </tr>
+  -->
   <!--
   <tr>
     <td width="25%" align="center" valign="middle">
@@ -129,6 +131,7 @@
     </td>
   </tr>
 -->
+<!-- Fenno.ai and Qiniu Cloud AI
   <tr>
     <td width="25%" align="center" valign="middle">
       <a href="https://api.fenno.ai/register?redirect=/purchase?tab=subscription%26group=16&aff=2EW65KEQC938">
@@ -149,16 +152,44 @@
       七牛云 AI は七牛云（02567.HK）傘下の<strong>エンタープライズ向け大規模モデル MaaS プラットフォーム</strong>です。世界中の <strong>150 以上の主要モデル</strong>をワンストップで呼び出せ、主要モデルプロバイダーのプロトコルと互換性があり、テキスト、画像、音声、動画、ファイル処理などのフルモーダル処理能力をカバーし、169 万以上の企業および開発者ユーザーにサービスを提供しています。特別特典：法人ユーザーは<a href="https://s.qiniu.com/FRF7bq"><strong>1200 万 Token</strong> を無料で受け取れ</a>、友人招待で最大<strong>百億 Token</strong>を獲得できます。
     </td>
   </tr>
+-->
+<!-- VMCard
   <tr>
     <td width="25%" align="center" valign="middle">
-      <a href="https://vmcardio.com/zh/register?code=902506">
+      <a href="https://vmcardio.com/zh/register?code=OPXPWHXWD5">
         <img src="static/vmcard.png" alt="VMCard Sponsor" width="180">
       </a>
     </td>
     <td width="75%" align="left" valign="middle">
-      <strong>VMCard｜AI ビジネス向けエンタープライズ決済カード</strong>は、AI アカウント販売事業者、AI API サービスプロバイダー、一括サブスクリプションを扱うチーム向けのサービスです。GPT / Claude の支払いをスムーズに行える専用の米国 Visa カード番号帯を提供し、API によるカードの一括発行と業界最低水準の決済為替レートに対応。大規模かつ長期的で安定した決済ニーズに応えます。<a href="https://vmcardio.com/zh/register?code=902506">このリンクから登録</a>できます。
+      <strong>VMCard｜AI ビジネス向けエンタープライズ決済カード</strong>は、AI アカウント販売事業者、AI API サービスプロバイダー、一括サブスクリプションを扱うチーム向けのサービスです。GPT / Claude の支払いをスムーズに行える専用の米国 Visa カード番号帯を提供し、API によるカードの一括発行と業界最低水準の決済為替レートに対応。大規模かつ長期的で安定した決済ニーズに応えます。<a href="https://vmcardio.com/zh/register?code=OPXPWHXWD5">このリンクから登録</a>できます。
     </td>
   </tr>
+-->
+  <tr>
+    <td width="25%" align="center" valign="middle">
+      <a href="https://www.axisnow.io">
+        <img src="static/axisnow.jpg" alt="AxisNow Sponsor" width="180">
+      </a>
+    </td>
+    <td width="75%" align="left" valign="middle">
+      <a href="https://www.axisnow.io">AxisNow</a> は、中国本土と世界各地のアクセス体験を両立しながら、Web サイトや API を保護・高速化します。さらにクライアント SDK を通じて、高速化とセキュリティ機能をネイティブ／モバイルアプリにも拡張します — <strong>セルフホスト型プライベート CDN｜サブスクリプション型 DDoS 防御 CDN｜自主管理でき、柔軟に組み合わせ可能な CDN ネットワーク。</strong>
+    </td>
+  </tr>
+<!-- RunningHub
+  <tr>
+    <td width="25%" align="center" valign="middle">
+      <a href="https://www.runninghub.ai/call-api?source=github">
+        <img src="static/runninghub.png" alt="RunningHub Sponsor" width="180">
+      </a>
+    </td>
+    <td width="75%" align="left" valign="middle">
+      <strong>RUNNINGHUB API</strong> — API 経由で 400 以上の最先端 AI モデル（Seedance、Kling、MiniMax、Nano Banana、Veo など）に非常に競争力のある価格でアクセス。<br>
+      <code>高並行処理対応</code> <code>無料 API テスト</code> <code>エンドツーエンド暗号化</code> · <a href="https://www.runninghub.ai/call-api?source=github"><strong>👉 無料で API をテスト（Test the API for Free）</strong></a><br>
+      底値で強力な Seedance API を手に入れましょう！オンラインツールは約 US$0.031/秒〜、コストを 60〜80% 削減！<br>
+      <small style="color: #666;">RunningHub の割引や無料トライアルについては、<a href="mailto:zhenyuedong@haima.me">zhenyuedong@haima.me</a> までお問い合わせください。</small>
+    </td>
+  </tr>
+-->
   <tr>
     <td width="25%" align="center" valign="middle">
       <img src="static/wechat.png" alt="Sponsor Contact" width="150">

@@ -3,6 +3,10 @@ import logger from '../../utils/logger.js';
 import { ProviderStrategy } from '../../utils/provider-strategy.js';
 import { applySystemPromptReplacements } from '../../converters/utils.js';
 
+const GEMINI_FINISH_REASON = Object.freeze({
+    MALFORMED_FUNCTION_CALL: 'MALFORMED_FUNCTION_CALL'
+});
+
 /**
  * Gemini provider strategy implementation.
  */
@@ -25,6 +29,26 @@ class GeminiStrategy extends ProviderStrategy {
             }
         }
         return '';
+    }
+
+    classifyResponseFailure(response) {
+        // Some Gemini transports wrap the protocol response in a `response` field.
+        const candidates = response?.candidates || response?.response?.candidates;
+        if (!Array.isArray(candidates)) return null;
+
+        const candidate = candidates.find(item =>
+            item?.finishReason === GEMINI_FINISH_REASON.MALFORMED_FUNCTION_CALL
+        );
+        if (!candidate) return null;
+
+        return {
+            code: GEMINI_FINISH_REASON.MALFORMED_FUNCTION_CALL,
+            message: candidate.finishMessage || 'Gemini produced an invalid function call.',
+            retryable: true,
+            retryCategory: 'empty_output',
+            skipErrorCount: true,
+            shouldSwitchCredential: true
+        };
     }
 
     extractPromptText(requestBody) {

@@ -82,6 +82,7 @@
     </td>
   </tr>
   -->
+  <!-- Atlas Cloud
   <tr>
     <td width="25%" align="center" valign="middle">
       <a href="https://www.atlascloud.ai/console/coding-plan">
@@ -92,6 +93,7 @@
       Thanks to Atlas Cloud for sponsoring this project! Atlas Cloud is a <strong>full-modal AI inference platform</strong> that gives developers a single AI API to access video generation, image generation, and LLM APIs. Instead of managing multiple vendor integrations, you connect once and get unified access to <strong>300+ curated models</strong> across all modalities. Check out Atlas Cloud's new <a href="https://www.atlascloud.ai/console/coding-plan">coding plan promotion</a> for more budget-friendly API access.
     </td>
   </tr>
+  -->
   <!--
   <tr>
     <td width="25%" align="center" valign="middle">
@@ -129,6 +131,7 @@
     </td>
   </tr>
 -->
+<!-- Fenno.ai and Qiniu Cloud AI
   <tr>
     <td width="25%" align="center" valign="middle">
       <a href="https://api.fenno.ai/register?redirect=/purchase?tab=subscription%26group=16&aff=2EW65KEQC938">
@@ -149,16 +152,44 @@
       Qiniu Cloud AI is an <strong>enterprise-grade large-model MaaS platform</strong> under Qiniu Cloud (02567.HK). It offers one-stop access to <strong>150+ mainstream global models</strong>, is compatible with major model provider protocols, and covers full-modal capabilities including text, image, audio, video, and file processing, serving more than 1.69 million enterprise and developer users. Exclusive benefit: enterprise users can <a href="https://s.qiniu.com/FRF7bq">claim <strong>12 million tokens</strong> for free</a>, and can earn up to <strong>tens of billions of tokens</strong> by inviting friends.
     </td>
   </tr>
+-->
+<!-- VMCard
   <tr>
     <td width="25%" align="center" valign="middle">
-      <a href="https://vmcardio.com/zh/register?code=902506">
+      <a href="https://vmcardio.com/zh/register?code=OPXPWHXWD5">
         <img src="static/vmcard.png" alt="VMCard Sponsor" width="180">
       </a>
     </td>
     <td width="75%" align="left" valign="middle">
-      <strong>VMCard | Enterprise Payment Cards for AI Businesses</strong> is built for AI account vendors, AI API providers, and teams managing bulk subscriptions. It enables seamless GPT / Claude payments with dedicated U.S. Visa BINs, API-based bulk card issuance, and the lowest settlement exchange rates available—ideal for high-volume, long-term, stable payment needs. <a href="https://vmcardio.com/zh/register?code=902506">Register through this link</a>.
+      <strong>VMCard | Enterprise Payment Cards for AI Businesses</strong> is built for AI account vendors, AI API providers, and teams managing bulk subscriptions. It enables seamless GPT / Claude payments with dedicated U.S. Visa BINs, API-based bulk card issuance, and the lowest settlement exchange rates available—ideal for high-volume, long-term, stable payment needs. <a href="https://vmcardio.com/zh/register?code=OPXPWHXWD5">Register through this link</a>.
     </td>
   </tr>
+-->
+  <tr>
+    <td width="25%" align="center" valign="middle">
+      <a href="https://www.axisnow.io">
+        <img src="static/axisnow.jpg" alt="AxisNow Sponsor" width="180">
+      </a>
+    </td>
+    <td width="75%" align="left" valign="middle">
+      <a href="https://www.axisnow.io">AxisNow</a> protects and accelerates websites and APIs while delivering an optimized access experience across mainland China and the rest of the world. Through its client SDK, AxisNow extends acceleration and security capabilities to native/mobile apps — <strong>self-hosted private CDN｜subscription-based DDoS-protected CDN｜independently controlled, flexibly composable CDN networks.</strong>
+    </td>
+  </tr>
+<!-- RunningHub
+  <tr>
+    <td width="25%" align="center" valign="middle">
+      <a href="https://www.runninghub.ai/call-api?source=github">
+        <img src="static/runninghub.png" alt="RunningHub Sponsor" width="180">
+      </a>
+    </td>
+    <td width="75%" align="left" valign="middle">
+      <strong>RUNNINGHUB API</strong> — Access 400+ leading AI models via API - Seedance, Kling, MiniMax, Nano Banana, Veo, and more - at highly competitive prices.<br>
+      <code>High-Concurrency Support</code> <code>Free API Testing</code> <code>End-to-End Encryption</code> · <a href="https://www.runninghub.ai/call-api?source=github"><strong>👉 Test the API for Free</strong></a><br>
+      Get full-powered Seedance API access at rock-bottom prices! Our online tool starts at approximately US$0.031/second—cutting costs by 60-80%!<br>
+      <small style="color: #666;">For RunningHub discounts and free trials, contact <a href="mailto:zhenyuedong@haima.me">zhenyuedong@haima.me</a>.</small>
+    </td>
+  </tr>
+-->
   <tr>
     <td width="25%" align="center" valign="middle">
       <img src="static/wechat.png" alt="Sponsor Contact" width="150">

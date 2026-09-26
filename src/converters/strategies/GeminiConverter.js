@@ -515,20 +515,17 @@ export class GeminiConverter extends BaseConverter {
      * 处理Gemini parts到OpenAI内容
      */
     processGeminiPartsToOpenAIContent(parts) {
-        if (!parts || !Array.isArray(parts)) return '';
-        
+        if (!parts || !Array.isArray(parts)) return { content: '', reasoning_content: '' };
+
         const contentArray = [];
-        
+        const reasoningParts = [];
+
         parts.forEach(part => {
             if (!part) return;
-            
+
             if (typeof part.text === 'string') {
                 if (part.thought === true) {
-                    contentArray.push({
-                        type: 'text',
-                        text: part.text,
-                        reasoning: true // 标记以便后续处理
-                    });
+                    reasoningParts.push(part.text);
                 } else {
                     contentArray.push({
                         type: 'text',
@@ -536,7 +533,7 @@ export class GeminiConverter extends BaseConverter {
                     });
                 }
             }
-            
+
             if (part.inlineData) {
                 const { mimeType, data } = part.inlineData;
                 if (mimeType && data) {
@@ -548,7 +545,7 @@ export class GeminiConverter extends BaseConverter {
                     });
                 }
             }
-            
+
             if (part.fileData) {
                 const { mimeType, fileUri } = part.fileData;
                 if (mimeType && fileUri) {
@@ -568,10 +565,15 @@ export class GeminiConverter extends BaseConverter {
                 }
             }
         });
-        
-        return contentArray.length === 1 && contentArray[0].type === 'text'
+
+        const content = contentArray.length === 1 && contentArray[0].type === 'text'
             ? contentArray[0].text
             : contentArray;
+
+        return {
+            content,
+            reasoning_content: reasoningParts.join('\n')
+        };
     }
 
     /**
@@ -1215,68 +1217,10 @@ export class GeminiConverter extends BaseConverter {
     }
 
     /**
-     * 处理Gemini parts到OpenAI内容
+     * 构建稳定的 OpenAI Responses 消息项 ID
      */
-    processGeminiPartsToOpenAIContent(parts) {
-        if (!parts || !Array.isArray(parts)) return { content: '', reasoning_content: '' };
-        
-        const contentArray = [];
-        const reasoningParts = [];
-        
-        parts.forEach(part => {
-            if (!part) return;
-            
-            if (typeof part.text === 'string') {
-                if (part.thought === true) {
-                    reasoningParts.push(part.text);
-                } else {
-                    contentArray.push({
-                        type: 'text',
-                        text: part.text
-                    });
-                }
-            }
-            
-            if (part.inlineData) {
-                const { mimeType, data } = part.inlineData;
-                if (mimeType && data) {
-                    contentArray.push({
-                        type: 'image_url',
-                        image_url: {
-                            url: `data:${mimeType};base64,${data}`
-                        }
-                    });
-                }
-            }
-            
-            if (part.fileData) {
-                const { mimeType, fileUri } = part.fileData;
-                if (mimeType && fileUri) {
-                    if (mimeType.startsWith('image/')) {
-                        contentArray.push({
-                            type: 'image_url',
-                            image_url: {
-                                url: fileUri
-                            }
-                        });
-                    } else if (mimeType.startsWith('audio/')) {
-                        contentArray.push({
-                            type: 'text',
-                            text: `[Audio file: ${fileUri}]`
-                        });
-                    }
-                }
-            }
-        });
-        
-        const finalContent = contentArray.length === 1 && contentArray[0].type === 'text'
-            ? contentArray[0].text
-            : contentArray;
-
-        return {
-            content: finalContent,
-            reasoning_content: reasoningParts.join('\n')
-        };
+    _buildResponsesMessageItemId(responseId, index = 0) {
+        return responseId ? `msg_${responseId}_${index}` : `msg_${uuidv4().replace(/-/g, '')}`;
     }
 
     _buildResponsesFunctionItemId(callId) {

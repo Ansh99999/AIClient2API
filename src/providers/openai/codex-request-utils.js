@@ -5,7 +5,9 @@ export function normalizeCodexInstructions(requestBody) {
 
     const instructionTexts = [];
     requestBody.input = requestBody.input.filter(item => {
-        if (item?.role !== 'system' && item?.role !== 'developer') {
+        const isMessage = !item?.type || item.type === 'message';
+        const isInstructionRole = item?.role === 'system' || item?.role === 'developer';
+        if (!isMessage || !isInstructionRole) {
             return true;
         }
 

@@ -82,6 +82,7 @@
     </td>
   </tr>
   -->
+  <!-- Atlas Cloud
   <tr>
     <td width="25%" align="center" valign="middle">
       <a href="https://www.atlascloud.ai/console/coding-plan">
@@ -92,6 +93,7 @@
       感谢 Atlas Cloud 赞助本项目！Atlas Cloud 是一款<strong>全模态 AI 推理平台</strong>，为开发者提供单一的 AI API 以轻松接入视频生成、图像生成和大语言模型 API。无需管理多个供应商集成，您只需连接一次，即可统一访问跨所有模态的 <strong>300 多种精选模型</strong>。欢迎查看 Atlas Cloud 全新的 <a href="https://www.atlascloud.ai/console/coding-plan">编码计划促销活动 (coding plan)</a>，以获取更具性价比的 API 接入服务。
     </td>
   </tr>
+  -->
   <!--
   <tr>
     <td width="25%" align="center" valign="middle">
@@ -129,6 +131,7 @@
     </td>
   </tr>
 -->
+<!-- Fenno.ai and Qiniu Cloud AI
   <tr>
     <td width="25%" align="center" valign="middle">
       <a href="https://api.fenno.ai/register?redirect=/purchase?tab=subscription%26group=16&aff=2EW65KEQC938">
@@ -149,16 +152,44 @@
       七牛云 AI 是七牛云（02567.HK）旗下<strong>企业级大模型 MaaS 平台</strong>，可一站式调用全球 <strong>150+ 主流模型</strong>，兼容全球主流模型厂商协议，覆盖文本、图像、音频、视频、文件处理等全模态处理能力，服务超过 169 万企业及开发者用户。专属福利：企业用户可<a href="https://s.qiniu.com/FRF7bq">免费领 <strong>1200 万 Token</strong></a>，邀请好友最高得<strong>百亿 Token</strong>。
     </td>
   </tr>
+-->
+<!-- VMCard
   <tr>
     <td width="25%" align="center" valign="middle">
-      <a href="https://vmcardio.com/zh/register?code=902506">
+      <a href="https://vmcardio.com/zh/register?code=OPXPWHXWD5">
         <img src="static/vmcard.png" alt="VMCard Sponsor" width="180">
       </a>
     </td>
     <td width="75%" align="left" valign="middle">
-      <strong>VMCard｜AI 业务企业级支付卡</strong>，面向 AI 账号商、AI API 服务商及批量订阅业务团队。GPT / Claude 丝滑支付，专属美国 Visa 卡段，支持 API 批量开卡，全网最低结算汇率，满足大批量、长期稳定支付需求。<a href="https://vmcardio.com/zh/register?code=902506">通过此链接注册</a>。
+      <strong>VMCard｜AI 业务企业级支付卡</strong>，面向 AI 账号商、AI API 服务商及批量订阅业务团队。GPT / Claude 丝滑支付，专属美国 Visa 卡段，支持 API 批量开卡，全网最低结算汇率，满足大批量、长期稳定支付需求。<a href="https://vmcardio.com/zh/register?code=OPXPWHXWD5">通过此链接注册</a>。
     </td>
   </tr>
+-->
+  <tr>
+    <td width="25%" align="center" valign="middle">
+      <a href="https://www.axisnow.io/zh">
+        <img src="static/axisnow.jpg" alt="AxisNow Sponsor" width="180">
+      </a>
+    </td>
+    <td width="75%" align="left" valign="middle">
+      <a href="https://www.axisnow.io/zh">AxisNow</a> 保护并加速网站与 API，兼顾中国大陆及全球的访问体验，并通过客户端 SDK，将加速与安全能力延伸至原生/移动 App — <strong>自建私有部署 CDN｜订阅式高防 CDN｜自主可控、灵活组合的 CDN 网络。</strong>
+    </td>
+  </tr>
+<!-- RunningHub
+  <tr>
+    <td width="25%" align="center" valign="middle">
+      <a href="https://www.runninghub.ai/call-api?source=github">
+        <img src="static/runninghub.png" alt="RunningHub Sponsor" width="180">
+      </a>
+    </td>
+    <td width="75%" align="left" valign="middle">
+      <strong>RUNNINGHUB API</strong> — 通过 API 访问 400+ 顶尖 AI 模型（Seedance、Kling、MiniMax、Nano Banana、Veo 等），享受极具竞争力的超低价格。<br>
+      <code>高并发支持</code> <code>免费 API 测试</code> <code>端到端加密</code> · <a href="https://www.runninghub.ai/call-api?source=github"><strong>👉 免费测试 API（Test the API for Free）</strong></a><br>
+      以极具竞争力的底价获取全功能 Seedance API 接入！在线工具约 US$0.031/秒 起，最高降低 60-80% 成本！<br>
+      <small style="color: #666;">如需 RunningHub 折扣及免费试用，请联系：<a href="mailto:zhenyuedong@haima.me">zhenyuedong@haima.me</a>。</small>
+    </td>
+  </tr>
+-->
   <tr>
     <td width="25%" align="center" valign="middle">
       <img src="static/wechat.png" alt="Sponsor Contact" width="150">
