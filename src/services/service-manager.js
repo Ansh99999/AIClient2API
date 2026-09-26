@@ -11,7 +11,8 @@ import {
     addToUsedPaths,
     isPathUsed,
     getFileName,
-    formatSystemPath
+    formatSystemPath,
+    readCredentialEmail
 } from '../utils/provider-utils.js';
 import { withFileLock, atomicWriteFile } from '../utils/file-lock.js';
 import { MODEL_PROVIDER } from '../utils/constants.js';
@@ -189,7 +190,8 @@ async function linkSingleCredential(config, credPath) {
             credPathKey,
             credPath: formatSystemPath(relativePath),
             defaultCheckModel,
-            needsProjectId
+            needsProjectId,
+            customName: await readCredentialEmail(absolutePath)
         });
         
         // 添加到配置
@@ -243,7 +245,8 @@ async function scanProviderDirectory(dirPath, linkedPaths, newProviders, options
                             credPathKey,
                             credPath: formatSystemPath(relativePath),
                             defaultCheckModel,
-                            needsProjectId
+                            needsProjectId,
+                            customName: await readCredentialEmail(fullPath)
                         });
                         
                         newProviders.push(newProvider);

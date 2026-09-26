@@ -454,10 +454,80 @@ export function formatGeminiUsage(usageData) {
 }
 
 /**
+ * 将 retrieveUserQuotaSummary 的模型组配额转换为用量条目
+ * 同一组内的模型共享额度，因此每个组每个时间窗口只显示一条：
+ * 付费账号为 5 小时 + 周限额，免费账号只有周限额（以接口实际返回为准）
+ * @param {Object} quotaSummary - retrieveUserQuotaSummary 原始响应
+ * @returns {Array} 用量条目
+ */
+function buildAntigravityGroupItems(quotaSummary) {
+    const groups = Array.isArray(quotaSummary?.groups) ? quotaSummary.groups : [];
+    const windowOrder = { '5h': 0, weekly: 1 };
+    const windowLabel = { '5h': '5h', weekly: 'Weekly' };
+    const items = [];
+
+    groups.forEach((group, groupIndex) => {
+        const groupName = /gemini/i.test(group?.displayName || '') ? 'Gemini'
+            : /claude/i.test(group?.displayName || '') ? 'Claude'
+            : (group?.displayName || `Group ${groupIndex + 1}`);
+        const buckets = Array.isArray(group?.buckets) ? group.buckets : [];
+
+        for (const bucket of buckets) {
+            const window = String(bucket?.window || '').toLowerCase();
+            if (!(window in windowOrder)) continue;
+            // 上游在周限额耗尽时会禁用 5 小时桶，此时视为已用完
+            const remaining = bucket.disabled === true ? 0 : Number(bucket.remainingFraction);
+            if (!Number.isFinite(remaining)) continue;
+
+            const percent = Math.min(100, Math.max(0, (1 - remaining) * 100));
+            items.push({
+                id: `${groupName.toLowerCase()}-${window}`,
+                label: `${groupName} (${windowLabel[window]})`,
+                used: percent,
+                limit: 100,
+                percent,
+                unit: 'percent',
+                status: getStatus(percent),
+                resetAt: formatTimestamp(bucket.resetTime),
+                _order: groupIndex * 10 + windowOrder[window]
+            });
+        }
+    });
+
+    items.sort((a, b) => a._order - b._order);
+    items.forEach(item => delete item._order);
+    return items;
+}
+
+/**
  * 格式化 Antigravity 用量
  */
 export function formatAntigravityUsage(usageData) {
     if (!usageData) return null;
+
+    // 优先使用按模型组汇总的配额（与 Antigravity 客户端显示一致）
+    const groupItems = buildAntigravityGroupItems(usageData.quotaSummary);
+    if (groupItems.length > 0) {
+        // 概要显示最紧张的额度：任意一条用尽即无法使用该组模型
+        const tightest = groupItems.reduce((max, item) => item.percent > max.percent ? item : max, groupItems[0]);
+        const plan = parseTierId(usageData.tierId);
+
+        return {
+            summary: {
+                usedPercent: tightest.percent,
+                status: getStatus(tightest.percent),
+                resetAt: tightest.resetAt,
+                plan,
+                planClass: getPlanClass(plan),
+                unit: 'percent'
+            },
+            user: {
+                email: usageData.account || null
+            },
+            items: groupItems,
+            raw: usageData
+        };
+    }
 
     // 检查是否为原始 API 响应 (包含 models 对象且内部有 quotaInfo)
     if (usageData.models && typeof usageData.models === 'object' && !usageData.summary) {

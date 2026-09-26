@@ -1,4 +1,5 @@
 import { existsSync, readFileSync } from 'fs';
+import * as path from 'path';
 import logger from '../utils/logger.js';
 import { getRequestBody } from '../utils/common.js';
 import {
@@ -8,7 +9,7 @@ import {
     normalizeModelIds,
     usesManagedModelList
 } from '../providers/provider-models.js';
-import { generateUUID, createProviderConfig, formatSystemPath, detectProviderFromPath, addToUsedPaths, isPathUsed, pathsEqual } from '../utils/provider-utils.js';
+import { generateUUID, createProviderConfig, formatSystemPath, detectProviderFromPath, addToUsedPaths, isPathUsed, pathsEqual, readCredentialEmail } from '../utils/provider-utils.js';
 import { broadcastEvent } from './event-broadcast.js';
 import { getRegisteredProviders, getServiceAdapter, invalidateServiceAdapter, serviceInstances } from '../providers/adapter.js';
 import { withFileLock, atomicWriteFile } from '../utils/file-lock.js';
@@ -1434,7 +1435,8 @@ export async function handleQuickLinkProvider(req, res, currentConfig, providerP
                 credPath: formatSystemPath(currentFilePath),
                 defaultCheckModel,
                 needsProjectId: providerMapping.needsProjectId,
-                urlKeys: urlKeys
+                urlKeys: urlKeys,
+                customName: await readCredentialEmail(path.resolve(process.cwd(), currentFilePath))
             });
 
             providerPools[providerType].push(newProvider);

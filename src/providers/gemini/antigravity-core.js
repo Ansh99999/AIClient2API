@@ -391,6 +391,25 @@ function generateProjectID() {
 }
 
 /**
+ * loadCodeAssist 未返回项目且账号被 Google 要求验证时，构造一个明确的错误。
+ * 这类账号即使继续 onboard 也只会拿到空项目，后续每个请求都会返回
+ * "You do not have a valid license of this product (#3501)"。
+ * @param {Object} loadResponse - loadCodeAssist 的响应
+ * @returns {Error|null} 需要验证时返回错误，否则返回 null
+ */
+function getAccountValidationError(loadResponse) {
+    const tiers = Array.isArray(loadResponse?.ineligibleTiers) ? loadResponse.ineligibleTiers : [];
+    const tier = tiers.find(t => t?.reasonCode === 'VALIDATION_REQUIRED');
+    if (!tier) return null;
+
+    const url = tier.validationUrl || '';
+    const error = new Error(`Google account verification required: ${tier.validationErrorMessage || 'Verify your account to continue.'}${url ? ` Open this link while signed in to the account, then run a health check: ${url}` : ''}`);
+    error.code = 'ANTIGRAVITY_VALIDATION_REQUIRED';
+    error.validationUrl = url || null;
+    return error;
+}
+
+/**
  * 规范化 Thinking Budget
  * @param {string} modelName - 模型名称
  * @param {number} budget - 原始 budget 值
@@ -1273,6 +1292,13 @@ export class AntigravityApiService {
                 }
             }
 
+            // 未命名的节点以账号邮箱命名，便于在号池中识别
+            const poolManager = getProviderPoolManager();
+            const providerType = this.config.MODEL_PROVIDER || MODEL_PROVIDER.ANTIGRAVITY;
+            if (poolManager && this.uuid && this.accountEmail) {
+                poolManager.setProviderNameIfEmpty(providerType, this.uuid, this.accountEmail);
+            }
+
             // Check if we already have a project ID from the response
             if (loadResponse.cloudaicompanionProject) {
                 logger.info(`[Antigravity] Discovered existing Project ID: ${loadResponse.cloudaicompanionProject}`);
@@ -1286,6 +1312,20 @@ export class AntigravityApiService {
                 // 获取可用模型
                 await this.fetchAvailableModels();
                 return loadResponse.cloudaicompanionProject;
+            }
+
+            // 账号需要 Google 验证时，onboard 只会返回空项目，后续请求全部 403 (#3501)。
+            // 直接停止初始化并将节点标记为不健康，让号池切换到其他账号。
+            const validationError = getAccountValidationError(loadResponse);
+            if (validationError) {
+                logger.warn(`[Antigravity] ${this.accountEmail || this.uuid} needs Google account verification; skipping onboarding.`);
+                if (poolManager && this.uuid) {
+                    poolManager.markProviderUnhealthyImmediately(providerType, { uuid: this.uuid }, validationError.message);
+                    validationError.credentialMarkedUnhealthy = true;
+                }
+                validationError.shouldSwitchCredential = true;
+                validationError.skipErrorCount = true;
+                throw validationError;
             }
 
             // If no existing project, we need to onboard
@@ -1326,6 +1366,10 @@ export class AntigravityApiService {
             await this.fetchAvailableModels();
             return discoveredProjectId;
         } catch (error) {
+            if (error.code === 'ANTIGRAVITY_VALIDATION_REQUIRED') {
+                // 生成的随机项目同样无法使用，不走兜底逻辑
+                throw error;
+            }
             logger.error('[Antigravity] Failed to discover Project ID:', error.response?.data || error.message);
             logger.info('[Antigravity] Falling back to generated Project ID as last resort...');
             const fallbackProjectId = generateProjectID();
@@ -2045,6 +2089,7 @@ export class AntigravityApiService {
                 if (res.data) {
                     return {
                         ...res.data,
+                        quotaSummary: await this.fetchQuotaSummary(),
                         tierId: this.tierId,
                         account: this.accountEmail
                     };
@@ -2054,6 +2099,37 @@ export class AntigravityApiService {
             }
         }
         throw new Error('Failed to fetch usage limits from all endpoints');
+    }
+
+    /**
+     * 获取按模型组汇总的配额（Gemini 组 / Claude 与 GPT 组，各含周限额与 5 小时限额）
+     * 与 Antigravity 客户端的 Model Quota 界面数据一致。失败时返回 null，不影响原有配额展示。
+     * @returns {Promise<Object|null>} retrieveUserQuotaSummary 的原始响应
+     */
+    async fetchQuotaSummary() {
+        for (const baseURL of this.baseURLs) {
+            try {
+                const requestOptions = {
+                    url: `${baseURL}/${ANTIGRAVITY_API_VERSION}:retrieveUserQuotaSummary`,
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'User-Agent': this.userAgent
+                    },
+                    responseType: 'json',
+                    body: JSON.stringify({ project: this.projectId })
+                };
+
+                this._applySidecar(requestOptions);
+                const res = await this.authClient.request(requestOptions);
+                if (Array.isArray(res.data?.groups)) {
+                    return res.data;
+                }
+            } catch (error) {
+                logger.warn(`[Antigravity] Failed to fetch quota summary from ${baseURL}:`, error.message);
+            }
+        }
+        return null;
     }
 
 }

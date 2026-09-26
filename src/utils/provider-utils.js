@@ -121,6 +121,41 @@ export function generateUUID() {
 }
 
 /**
+ * 从 JWT 的 payload 中读取 email 声明（不校验签名，仅用于展示名称）
+ * @param {string} token - JWT 字符串
+ * @returns {string|null} 邮箱地址
+ */
+function getEmailFromJwt(token) {
+    if (typeof token !== 'string') return null;
+    const parts = token.split('.');
+    if (parts.length < 2) return null;
+    try {
+        const payload = JSON.parse(Buffer.from(parts[1], 'base64url').toString('utf8'));
+        return typeof payload.email === 'string' && payload.email.includes('@') ? payload.email : null;
+    } catch {
+        return null;
+    }
+}
+
+/**
+ * 读取凭据文件对应的账号邮箱，用作号池节点的默认名称
+ * 优先使用文件中的 email 字段，其次解析 Google OAuth 返回的 id_token
+ * @param {string} filePath - 凭据文件路径
+ * @returns {Promise<string|null>} 邮箱地址，无法识别时返回 null
+ */
+export async function readCredentialEmail(filePath) {
+    try {
+        const data = JSON.parse(await fs.readFile(filePath, 'utf8'));
+        if (typeof data.email === 'string' && data.email.includes('@')) {
+            return data.email;
+        }
+        return getEmailFromJwt(data.id_token);
+    } catch {
+        return null;
+    }
+}
+
+/**
  * 标准化路径，用于跨平台兼容
  * @param {string} filePath - 文件路径
  * @returns {string} 使用正斜杠的标准化路径
@@ -339,14 +374,16 @@ export async function isValidOAuthCredentials(filePath) {
  * @param {string} options.defaultCheckModel - 默认检测模型
  * @param {boolean} options.needsProjectId - 是否需要 PROJECT_ID
  * @param {Array} options.urlKeys - 可选的 URL 配置项键名列表
+ * @param {string} [options.customName] - 可选的节点名称（通常为账号邮箱）
  * @returns {Object} 新的提供商配置对象
  */
 export function createProviderConfig(options) {
-    const { credPathKey, credPath, defaultCheckModel, defaultCheckHealth, needsProjectId, urlKeys } = options;
-    
+    const { credPathKey, credPath, defaultCheckModel, defaultCheckHealth, needsProjectId, urlKeys, customName } = options;
+
     const newProvider = {
         [credPathKey]: credPath,
         uuid: generateUUID(),
+        ...(customName ? { customName } : {}),
         checkModelName: defaultCheckModel,
         checkHealth: defaultCheckHealth ?? false,
         isHealthy: true,

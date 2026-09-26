@@ -1809,6 +1809,22 @@ export class ProviderPoolManager {
     }
 
     /**
+     * 节点未设置名称时，使用账号邮箱作为名称（不会覆盖用户自定义的名称）
+     * @param {string} providerType - 提供商类型
+     * @param {string} uuid - 提供商 UUID
+     * @param {string} name - 账号邮箱
+     */
+    setProviderNameIfEmpty(providerType, uuid, name) {
+        if (!providerType || !uuid || !name) return;
+        const provider = this._findProvider(providerType, uuid);
+        if (provider && !provider.config.customName) {
+            provider.config.customName = name;
+            this._log('info', `Named provider ${uuid} (${providerType}) after its account: ${name}`);
+            this._debouncedSave(providerType);
+        }
+    }
+
+    /**
      * 重置提供商的计数器（错误计数和使用计数）
      * @param {string} providerType - The type of the provider.
      * @param {object} providerConfig - The configuration of the provider to mark.
