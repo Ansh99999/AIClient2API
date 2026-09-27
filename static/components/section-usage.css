@@ -584,6 +584,71 @@
     background: var(--bg-primary); color: var(--text-primary);
 }
 
+/* 号池汇总 */
+.usage-pool-totals {
+    margin: 0.75rem 1rem;
+    background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+    border: 1px solid var(--border-color);
+    border-radius: 0.5rem;
+    overflow: hidden;
+}
+
+.pool-totals-summary {
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+}
+
+.pool-totals-summary:hover { background: var(--bg-tertiary); }
+.pool-totals-summary:focus-visible { outline: 2px solid var(--primary-color); outline-offset: -2px; }
+
+.pool-totals-header {
+    display: flex; align-items: center; flex-wrap: wrap; gap: 0.5rem;
+    margin-bottom: 0.625rem;
+}
+
+.pool-totals-toggle { font-size: 0.7rem; color: var(--text-secondary); transition: transform 0.2s; }
+.usage-pool-totals:not(.collapsed) .pool-totals-toggle { transform: rotate(90deg); }
+.pool-totals-title { font-size: 0.85rem; font-weight: 600; color: var(--text-primary); display: inline-flex; align-items: center; gap: 0.375rem; }
+.pool-totals-title i { color: var(--primary-color); }
+.pool-totals-meta { font-size: 0.7rem; color: var(--text-secondary); }
+.pool-totals-header .pool-totals-meta { margin-left: auto; }
+.pool-totals-unavailable { color: var(--danger-color); }
+
+.pool-totals-bars {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem 1rem;
+}
+
+.pool-total-bar .progress-bar-small { height: 0.375rem; margin-bottom: 0.25rem; }
+.pool-total-bar .breakdown-name { font-weight: 600; color: var(--text-primary); }
+.pool-total-reset { font-size: 0.6rem; color: var(--text-secondary); display: flex; align-items: center; gap: 0.25rem; }
+
+.pool-totals-tiers {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+    padding: 0 1rem 0.75rem;
+}
+
+.usage-pool-totals.collapsed .pool-totals-tiers { display: none; }
+
+.pool-tier {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 0.375rem;
+    padding: 0.625rem 0.75rem;
+}
+
+.pool-tier-title {
+    display: flex; justify-content: space-between; align-items: center; gap: 0.5rem;
+    margin-bottom: 0.5rem; font-size: 0.75rem; font-weight: 600; color: var(--text-primary);
+}
+
+.pool-tier-pro .pool-tier-title > span:first-child { color: var(--primary-color); }
+.pool-totals-note { grid-column: 1 / -1; font-size: 0.65rem; color: var(--text-tertiary); }
+.pool-totals-empty { padding: 0.75rem 1rem; font-size: 0.75rem; color: var(--text-secondary); }
+
 /* 响应式调整 */
 @media (max-width: 1400px) { .usage-cards-grid { grid-template-columns: repeat(3, 1fr); } }
 @media (max-width: 1024px) { .usage-cards-grid { grid-template-columns: repeat(2, 1fr); } }
@@ -592,6 +657,10 @@
     .pagination-container { flex-direction: column; align-items: stretch; gap: 10px; }
     .usage-instance-header { padding: 0.5rem 0.75rem; }
     .usage-instance-content { padding: 0.5rem; }
+    .usage-pool-totals { margin: 0.5rem; }
+    .pool-totals-summary { padding: 0.625rem 0.75rem; }
+    .pool-totals-tiers { grid-template-columns: 1fr; padding: 0 0.75rem 0.625rem; }
+    .pool-tier .pool-totals-bars { grid-template-columns: 1fr; }
 }
 
 /* 暗黑主题适配 */

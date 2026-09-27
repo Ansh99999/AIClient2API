@@ -1,6 +1,6 @@
 // 用量管理模块
 
-import { showToast, bindOnce, getBaseProviderConfigs, renderErrorWithLinks } from './utils.js';
+import { showToast, bindOnce, getBaseProviderConfigs, renderErrorWithLinks, escapeHtml } from './utils.js';
 import { getAuthHeaders } from './auth.js';
 import { t, getCurrentLanguage } from './i18n.js';
 
@@ -247,6 +247,13 @@ function updateSingleInstanceCard(providerType, instanceData) {
         newCard.classList.toggle('collapsed', isCollapsed);
         grid.replaceChild(newCard, targetCard);
     }
+
+    // 同步更新号池汇总
+    if (Array.isArray(group._instances)) {
+        group._instances = group._instances.map(inst => inst.uuid === instanceData.uuid ? instanceData : inst);
+        const totals = group.querySelector('.usage-pool-totals');
+        if (totals) totals.replaceWith(createPoolTotals(providerType, group._instances));
+    }
 }
 
 /**
@@ -394,7 +401,121 @@ function createProviderGroup(providerType, instances) {
     const grid = group.querySelector('.usage-cards-grid');
     instances.forEach(inst => grid.appendChild(createInstanceUsageCard(inst, providerType)));
 
+    if (POOL_TOTALS_PROVIDERS.has(providerType)) {
+        group._instances = instances;
+        group.querySelector('.usage-group-header').after(createPoolTotals(providerType, instances));
+    }
+
     return group;
+}
+
+// 显示号池汇总的提供商（按 5h / 每周模型组配额聚合）
+const POOL_TOTALS_PROVIDERS = new Set(['gemini-antigravity']);
+const POOL_WINDOW_ORDER = ['gemini-5h', 'gemini-weekly', 'claude-5h', 'claude-weekly'];
+const poolTotalsExpanded = {};
+
+function getUsageStatus(percent) {
+    if (percent > 90) return 'danger';
+    if (percent > 70) return 'warning';
+    return 'normal';
+}
+
+/**
+ * 汇总多个账号的同类额度：取各账号已用百分比的平均值，重置时间取最早的一个
+ * @param {Object[]} accounts - 含 usage.items 的实例
+ * @param {string[]} ids - 需要汇总的额度 id（如 gemini-weekly）
+ */
+function aggregatePoolItems(accounts, ids) {
+    return ids.map(id => {
+        const matches = accounts
+            .map(inst => inst.usage.items.find(item => item.id === id))
+            .filter(item => item && Number.isFinite(item.percent));
+        if (matches.length === 0) return null;
+
+        const percent = matches.reduce((sum, item) => sum + item.percent, 0) / matches.length;
+        const resets = matches.map(item => item.resetAt).filter(Boolean).sort((a, b) => new Date(a) - new Date(b));
+        return { id, label: matches[0].label, percent, status: getUsageStatus(percent), resetAt: resets[0] || null };
+    }).filter(Boolean);
+}
+
+function renderPoolBars(items) {
+    return items.map(item => `
+        <div class="pool-total-bar">
+            <div class="breakdown-header-compact">
+                <span class="breakdown-name">${escapeHtml(item.label)}</span>
+                <span class="breakdown-usage">${item.percent.toFixed(1)}%</span>
+            </div>
+            <div class="progress-bar-small ${item.status}"><div class="progress-fill" style="width: ${item.percent}%"></div></div>
+            ${item.resetAt ? `<div class="pool-total-reset"><i class="fas fa-history"></i> ${t('usage.pool.nextReset', { time: formatDate(item.resetAt) })}</div>` : ''}
+        </div>
+    `).join('');
+}
+
+/**
+ * 创建号池汇总：默认显示全部账号的 Gemini / Claude 每周用量，
+ * 点击后按 Pro（有 5 小时额度）与免费账号分别显示
+ */
+function createPoolTotals(providerType, instances) {
+    const reporting = instances.filter(inst => inst.success && inst.usage?.items?.some(item => POOL_WINDOW_ORDER.includes(item.id)));
+    const proAccounts = reporting.filter(inst => inst.usage.items.some(item => item.id.endsWith('-5h')));
+    const freeAccounts = reporting.filter(inst => !proAccounts.includes(inst));
+    const unavailable = instances.length - reporting.length;
+
+    const overall = aggregatePoolItems(reporting, ['gemini-weekly', 'claude-weekly']);
+    const tiers = [
+        { key: 'pro', accounts: proAccounts, items: aggregatePoolItems(proAccounts, POOL_WINDOW_ORDER) },
+        { key: 'free', accounts: freeAccounts, items: aggregatePoolItems(freeAccounts, ['gemini-weekly', 'claude-weekly']) }
+    ].filter(tier => tier.accounts.length > 0);
+
+    const expanded = !!poolTotalsExpanded[providerType];
+    const panel = document.createElement('div');
+    panel.className = `usage-pool-totals${expanded ? '' : ' collapsed'}`;
+
+    if (reporting.length === 0) {
+        panel.innerHTML = `<div class="pool-totals-empty">${t('usage.pool.noData')}</div>`;
+        return panel;
+    }
+
+    panel.innerHTML = `
+        <div class="pool-totals-summary" role="button" tabindex="0" aria-expanded="${expanded}">
+            <div class="pool-totals-header">
+                <i class="fas fa-chevron-right pool-totals-toggle"></i>
+                <span class="pool-totals-title"><i class="fas fa-layer-group"></i> ${t('usage.pool.title')}</span>
+                <span class="pool-totals-meta">
+                    ${t('usage.pool.accounts', { count: reporting.length })}${unavailable > 0 ? ` · <span class="pool-totals-unavailable">${t('usage.pool.unavailable', { count: unavailable })}</span>` : ''}
+                </span>
+            </div>
+            <div class="pool-totals-bars">${renderPoolBars(overall)}</div>
+        </div>
+        <div class="pool-totals-tiers">
+            ${tiers.map(tier => `
+                <div class="pool-tier pool-tier-${tier.key}">
+                    <div class="pool-tier-title">
+                        <span>${t(`usage.pool.${tier.key}`)}</span>
+                        <span class="pool-totals-meta">${t('usage.pool.accounts', { count: tier.accounts.length })}</span>
+                    </div>
+                    <div class="pool-totals-bars">${renderPoolBars(tier.items)}</div>
+                </div>
+            `).join('')}
+            <div class="pool-totals-note">${t('usage.pool.note')}</div>
+        </div>
+    `;
+
+    const summary = panel.querySelector('.pool-totals-summary');
+    const toggle = () => {
+        const isExpanded = panel.classList.toggle('collapsed') === false;
+        poolTotalsExpanded[providerType] = isExpanded;
+        summary.setAttribute('aria-expanded', String(isExpanded));
+    };
+    summary.onclick = toggle;
+    summary.onkeydown = (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            toggle();
+        }
+    };
+
+    return panel;
 }
 
 /**
