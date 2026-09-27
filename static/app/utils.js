@@ -648,6 +648,67 @@ async function copyToClipboard(text) {
     }
 }
 
+const ERROR_LINK_PATTERN = /https?:\/\/[^\s"'<>]+/g;
+
+/**
+ * 渲染错误信息：把其中的长链接（如 Google 账号验证链接）从正文中取出，
+ * 换成「打开链接」和「复制链接」按钮，避免在窄屏上撑破或被截断。
+ * @param {string} message - 原始错误信息
+ * @returns {string} 已转义的 HTML
+ */
+function renderErrorWithLinks(message) {
+    const text = String(message ?? '');
+    const urls = [...new Set(text.match(ERROR_LINK_PATTERN) || [])];
+    if (urls.length === 0) {
+        return `<span class="error-text">${escapeHtml(text)}</span>`;
+    }
+
+    // 去掉链接后，清理链接前残留的冒号和多余空白
+    const remaining = text.replace(ERROR_LINK_PATTERN, ' ').replace(/\s*:\s*$/, '').replace(/\s{2,}/g, ' ').trim();
+    const links = urls.map(url => {
+        const safeUrl = escapeHtml(url);
+        return `
+            <div class="error-link-actions" onclick="event.stopPropagation()">
+                <a class="error-link-btn" href="${safeUrl}" target="_blank" rel="noopener noreferrer">
+                    <i class="fas fa-external-link-alt"></i> <span>${t('common.error.openLink')}</span>
+                </a>
+                <button type="button" class="error-link-btn error-link-copy" data-url="${safeUrl}" onclick="window.copyErrorLink(this, event)">
+                    <i class="fas fa-copy"></i> <span>${t('common.error.copyLink')}</span>
+                </button>
+            </div>`;
+    }).join('');
+
+    return `${remaining ? `<span class="error-text">${escapeHtml(remaining)}</span>` : ''}${links}`;
+}
+
+/**
+ * 复制错误信息中的链接，并在按钮上短暂显示结果
+ * @param {HTMLButtonElement} button - 复制按钮
+ * @param {Event} [event] - 点击事件
+ */
+async function copyErrorLink(button, event) {
+    event?.stopPropagation();
+    const label = button.querySelector('span');
+    const icon = button.querySelector('i');
+    const ok = await copyToClipboard(button.dataset.url || '');
+
+    if (!ok) {
+        showToast(t('common.error'), t('common.error.copyFailed'), 'error');
+        return;
+    }
+    button.classList.add('copied');
+    if (label) label.textContent = t('common.error.copied');
+    if (icon) icon.className = 'fas fa-check';
+    clearTimeout(button._copyTimer);
+    button._copyTimer = setTimeout(() => {
+        button.classList.remove('copied');
+        if (label) label.textContent = t('common.error.copyLink');
+        if (icon) icon.className = 'fas fa-copy';
+    }, 2000);
+}
+
+window.copyErrorLink = copyErrorLink;
+
 /**
  * 只为元素绑定一次事件
  * @param {HTMLElement|null} element - 需要绑定事件的元素
@@ -701,6 +762,7 @@ export {
     getProviderStats,
     apiRequest,
     copyToClipboard,
+    renderErrorWithLinks,
     bindOnce,
     markOnce
 };

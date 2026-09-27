@@ -1,6 +1,6 @@
 // 用量管理模块
 
-import { showToast, bindOnce, getBaseProviderConfigs } from './utils.js';
+import { showToast, bindOnce, getBaseProviderConfigs, renderErrorWithLinks } from './utils.js';
 import { getAuthHeaders } from './auth.js';
 import { t, getCurrentLanguage } from './i18n.js';
 
@@ -478,7 +478,7 @@ function createInstanceUsageCard(instance, providerType) {
 
     const contentArea = card.querySelector('.usage-instance-content');
     if (instance.error) {
-        contentArea.innerHTML = `<div class="usage-error-message"><i class="fas fa-exclamation-triangle"></i> <span>${instance.error}</span></div>`;
+        contentArea.innerHTML = `<div class="usage-error-message"><i class="fas fa-exclamation-triangle"></i> <div class="usage-error-body">${renderErrorWithLinks(instance.error)}</div></div>`;
     } else if (instance.usage) {
         contentArea.appendChild(renderUsageDetails(instance.usage));
     }

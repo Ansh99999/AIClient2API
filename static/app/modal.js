@@ -1,6 +1,6 @@
 // 模态框管理模块
 
-import { escapeHtml, showToast, getFieldLabel, getProviderTypeFields } from './utils.js';
+import { escapeHtml, showToast, getFieldLabel, getProviderTypeFields, renderErrorWithLinks } from './utils.js';
 import { handleProviderPasswordToggle } from './event-handlers.js';
 import { t } from './i18n.js';
 
@@ -863,12 +863,11 @@ function renderProviderDetailList(providers) {
         // 构建错误信息显示
         let errorInfoHtml = '';
         if (!isHealthy && provider.lastErrorMessage) {
-            const escapedErrorMsg = provider.lastErrorMessage.replace(/</g, '&lt;').replace(/>/g, '&gt;');
             errorInfoHtml = `
                 <div class="provider-error-info">
                     <i class="fas fa-exclamation-circle text-danger"></i>
                     <span class="error-label" data-i18n="modal.provider.lastError">最后错误:</span>
-                    <span class="error-message" title="${escapedErrorMsg}">${escapedErrorMsg}</span>
+                    <div class="error-message" title="${escapeHtml(provider.lastErrorMessage)}">${renderErrorWithLinks(provider.lastErrorMessage)}</div>
                 </div>
             `;
         }

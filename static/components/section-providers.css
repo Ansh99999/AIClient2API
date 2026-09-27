@@ -743,6 +743,13 @@
 .provider-error-info .error-message {
     color: var(--danger-text-dark);
     word-break: break-word;
+    min-width: 0;
+    flex: 1;
+}
+
+/* 只限制正文高度，链接按钮始终可见 */
+.provider-error-info .error-message .error-text {
+    display: block;
     max-height: 60px;
     overflow-y: auto;
 }
@@ -1802,4 +1809,15 @@
 [data-theme="dark"] .providers-handoff-item {
     background: rgba(0, 0, 0, 0.2);
     border-color: var(--border-color);
+}
+
+@media (max-width: 768px) {
+    /* 窄屏下错误标签单独一行，正文和链接按钮占满卡片宽度 */
+    .provider-error-info {
+        flex-wrap: wrap;
+    }
+
+    .provider-error-info .error-message {
+        flex: 1 1 100%;
+    }
 }
