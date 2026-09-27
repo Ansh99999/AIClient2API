@@ -40,6 +40,7 @@ const config = {
     maxRestartAttempts: 10,
     restartDelay: 1000, // 重启延迟（毫秒）
     masterPort: parseInt(process.env.MASTER_PORT) || 3100, // 主进程管理端口
+    masterHost: process.env.MASTER_HOST || undefined, // 管理端口监听地址（未设置时监听所有地址）
     args: process.argv.slice(2) // 传递给子进程的参数
 };
 
@@ -313,8 +314,8 @@ function createMasterServer() {
         res.end(JSON.stringify({ error: 'Not Found' }));
     });
 
-    server.listen(config.masterPort, () => {
-        logger.info(`[Master] Management server listening on port ${config.masterPort}`);
+    server.listen(config.masterPort, config.masterHost, () => {
+        logger.info(`[Master] Management server listening on ${config.masterHost || '*'}:${config.masterPort}`);
         logger.info(`[Master] Available endpoints:`);
         logger.info(`  GET  /master/status  - Get master and worker status`);
         logger.info(`  GET  /master/health  - Health check`);
