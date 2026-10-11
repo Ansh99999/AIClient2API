@@ -114,7 +114,20 @@ export async function initializeConfig(args = process.argv.slice(2), configFileP
         PROMPT_LOG_MODE: "none",
         REQUEST_MAX_RETRIES: 3,
         REQUEST_BASE_DELAY: 1000,
-        MODEL_FALLBACK_ENABLED: true, // 模型不存在时是否自动 fallback 到默认/映射模型
+        MODEL_FALLBACK_ENABLED: false, // 模型不存在时是否自动 fallback 到默认/映射模型（本 fork 默认关闭：不存在的模型应报错而非静默降级到 gemini-3-flash）
+        // Fork defaults for multi-provider "one base URL" setup. Kept in code so an admin-UI
+        // config save (which rewrites config.json from a fixed whitelist) can't silently drop them.
+        PROVIDER_ALIASES: {
+            agy: 'gemini-antigravity',
+            wb: 'openai-custom-workbuddy',
+            jdw: 'claude-custom-justdowork',
+            cdx: 'openai-codex-oauth',
+            vsl: 'openai-custom-vsllm',
+        },
+        // When set, /v1/models aggregates ALL pool providers (prefixed alias/model) and
+        // unprefixed model names route to this provider. Makes multi-provider durable
+        // regardless of the MODEL_PROVIDER value the UI persists.
+        AUTO_DEFAULT_PROVIDER: 'gemini-antigravity',
         REQUEST_BODY_MAX_BYTES: DEFAULT_REQUEST_BODY_MAX_BYTES,
         CREDENTIAL_SWITCH_MAX_RETRIES: 5, // 坏凭证切换最大重试次数（用于认证错误后切换凭证）
         // 上游返回完全空响应（无文本/工具调用/思考）时的独立重试预算，与 CREDENTIAL_SWITCH_MAX_RETRIES 分开计数。

@@ -1657,9 +1657,11 @@ export async function handleModelListRequest(req, res, service, endpointType, CO
             return { data: [] };
         };
 
-        // --- 核心逻辑: auto 路由模式下的模型聚合 ---
-        if (CONFIG.MODEL_PROVIDER === MODEL_PROVIDER.AUTO && providerPoolManager) {
-            logger.info(`[ModelList] Aggregating models for 'auto' mode...`);
+        // --- 核心逻辑: 多提供商聚合 ---
+        // AUTO 模式，或配置了 AUTO_DEFAULT_PROVIDER（本 fork 的多提供商模式）时，聚合号池中所有提供商的模型。
+        // 后者使聚合不再依赖 MODEL_PROVIDER 的具体取值（UI 保存会把它重置为单个提供商），从而更稳健。
+        if ((CONFIG.MODEL_PROVIDER === MODEL_PROVIDER.AUTO || CONFIG.AUTO_DEFAULT_PROVIDER) && providerPoolManager) {
+            logger.info(`[ModelList] Aggregating models across all pool providers...`);
             clientModelList = await providerPoolManager.getAllAvailableModels(endpointType);
         } else {
             // --- 单提供商逻辑 ---

@@ -384,7 +384,11 @@ async function _handleUpdateConfig(req, res, currentConfig, body) {
                 TLS_SIDECAR_ENABLED_PROVIDERS: currentConfig.TLS_SIDECAR_ENABLED_PROVIDERS,
                 TLS_SIDECAR_PORT: currentConfig.TLS_SIDECAR_PORT,
                 TLS_SIDECAR_PROXY_URL: currentConfig.TLS_SIDECAR_PROXY_URL,
-                SCHEDULED_HEALTH_CHECK: currentConfig.SCHEDULED_HEALTH_CHECK
+                SCHEDULED_HEALTH_CHECK: currentConfig.SCHEDULED_HEALTH_CHECK,
+                // Fork multi-provider keys — persisted so an admin-UI save does not drop them.
+                MODEL_FALLBACK_ENABLED: currentConfig.MODEL_FALLBACK_ENABLED,
+                PROVIDER_ALIASES: currentConfig.PROVIDER_ALIASES,
+                AUTO_DEFAULT_PROVIDER: currentConfig.AUTO_DEFAULT_PROVIDER
             };
 
             await atomicWriteFile(configPath, JSON.stringify(configToSave, null, 2), { encoding: 'utf-8', mode: 0o600 });
