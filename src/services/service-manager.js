@@ -379,22 +379,48 @@ export async function initApiService(config, isReady = false) {
 async function _resolveEffectiveRouting(config, requestedModel) {
     let effectiveProvider = config.MODEL_PROVIDER;
     let actualModelName = requestedModel;
+    const aliases = (config.PROVIDER_ALIASES && typeof config.PROVIDER_ALIASES === 'object') ? config.PROVIDER_ALIASES : {};
 
-    // 1. 处理显式前缀 (无论是否是 AUTO 模式都支持)
-    if (requestedModel && requestedModel.includes(':')) {
-        const [prefix, ...modelParts] = requestedModel.split(':');
-        const modelSuffix = modelParts.join(':');
-        // 检查前缀是否是有效的提供商标识
-        if (providerPoolManager && (providerPoolManager.providerStatus[prefix] || config.providerPools?.[prefix])) {
-            effectiveProvider = prefix;
-            actualModelName = modelSuffix;
-            logger.info(`[Routing] Prefix resolved: ${prefix}:${modelSuffix}`);
+    const isKnownProvider = (type) =>
+        !!type && !!providerPoolManager &&
+        (providerPoolManager.providerStatus[type] || config.providerPools?.[type]);
+
+    // 1. 处理显式前缀 (支持 '/' 或 ':' 分隔符，以及短别名；无论是否是 AUTO 模式都支持)
+    if (requestedModel) {
+        const slashIdx = requestedModel.indexOf('/');
+        const colonIdx = requestedModel.indexOf(':');
+        let sepIdx = -1;
+        if (slashIdx !== -1 && (colonIdx === -1 || slashIdx < colonIdx)) {
+            sepIdx = slashIdx;
+        } else if (colonIdx !== -1) {
+            sepIdx = colonIdx;
+        }
+
+        if (sepIdx !== -1) {
+            const rawPrefix = requestedModel.slice(0, sepIdx);
+            const modelSuffix = requestedModel.slice(sepIdx + 1);
+            // 别名优先解析为真实的提供商类型
+            const resolvedPrefix = aliases[rawPrefix] || rawPrefix;
+            if (isKnownProvider(resolvedPrefix)) {
+                effectiveProvider = resolvedPrefix;
+                actualModelName = modelSuffix;
+                logger.info(`[Routing] Prefix resolved: ${rawPrefix} -> ${resolvedPrefix}:${modelSuffix}`);
+            }
         }
     }
 
-    // 2. 严格性检查：在 AUTO 模式下，如果到这里还没解析出具体提供商，则报错 (除非是列出模型场景)
+    // 2. AUTO 模式下，未带可识别前缀的模型回退到默认提供商（若已配置）
+    if (effectiveProvider === MODEL_PROVIDER.AUTO && requestedModel && actualModelName === requestedModel) {
+        const defaultProvider = config.AUTO_DEFAULT_PROVIDER;
+        if (isKnownProvider(defaultProvider)) {
+            effectiveProvider = defaultProvider;
+            logger.info(`[Routing] Unprefixed model '${requestedModel}' routed to default provider '${defaultProvider}'`);
+        }
+    }
+
+    // 3. 严格性检查：在 AUTO 模式下，如果到这里还没解析出具体提供商，则报错 (除非是列出模型场景)
     if (effectiveProvider === MODEL_PROVIDER.AUTO && requestedModel) {
-        throw new Error(`[API Service] Auto-routing failed: Model name must include a provider prefix (e.g., 'provider:model'). Received: '${requestedModel}'`);
+        throw new Error(`[API Service] Auto-routing failed: Model name must include a provider prefix (e.g., 'agy/model'). Received: '${requestedModel}'`);
     }
 
     return { effectiveProvider, actualModelName };

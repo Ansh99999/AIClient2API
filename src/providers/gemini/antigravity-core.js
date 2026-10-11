@@ -1968,7 +1968,7 @@ export class AntigravityApiService {
         let selectedModel = normalizeAntigravityModelId(model);
         if (!this.availableModels.includes(selectedModel) && !isKnownAntigravityModel(selectedModel)) {
             if (this.config.MODEL_FALLBACK_ENABLED === false) {
-                throw new Error(`[Antigravity] 模型不存在: ${model}`);
+                throw new Error(`[Antigravity] Model does not exist: ${model} (no such model on Antigravity; silent fallback to gemini-3-flash is disabled)`);
             }
             logger.warn(`[Antigravity] Model '${model}' not found. Using default model: 'gemini-3-flash'`);
             selectedModel = 'gemini-3-flash';

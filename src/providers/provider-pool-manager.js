@@ -1443,9 +1443,20 @@ export class ProviderPoolManager {
     async getAllAvailableModels(endpointType = null) {
         const allModels = [];
         
-        // 获取所有已注册的提供商和号池中的提供商
+        // 获取所有已注册的提供商和号池中的提供商（包含带后缀的自定义分组，如 openai-custom-workbuddy）
         const registeredProviders = getRegisteredProviders();
-        const allProviderTypes = Array.from(new Set([...registeredProviders]));
+        const poolTypes = Object.keys(this.providerStatus || {});
+        const allProviderTypes = Array.from(new Set([...registeredProviders, ...poolTypes]));
+
+        // 构建 providerType -> 短别名 的反向映射，用于生成简短的模型 ID（如 agy/model）
+        const aliasMap = (this.globalConfig?.PROVIDER_ALIASES && typeof this.globalConfig.PROVIDER_ALIASES === 'object')
+            ? this.globalConfig.PROVIDER_ALIASES : {};
+        const reverseAlias = {};
+        for (const [alias, type] of Object.entries(aliasMap)) {
+            if (type && reverseAlias[type] === undefined) {
+                reverseAlias[type] = alias;
+            }
+        }
 
         for (const providerType of allProviderTypes) {
             if (this.providerStatus[providerType]) {
@@ -1507,8 +1518,11 @@ export class ProviderPoolManager {
                 }
 
                 for (const model of models) {
+                    // 若该提供商配置了短别名，则生成简短的 ID（alias/model），否则沿用 providerType:model
+                    const alias = reverseAlias[providerType];
+                    const id = alias ? `${alias}/${model}` : `${providerType}:${model}`;
                     allModels.push({
-                        id: `${providerType}:${model}`,
+                        id,
                         provider: providerType,
                         model: model
                     });
