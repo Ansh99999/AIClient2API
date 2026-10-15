@@ -674,3 +674,5 @@
 [data-theme="dark"] .page-btn { background: var(--bg-primary); border-color: var(--border-color); color: var(--text-primary); }
 [data-theme="dark"] .page-jump-input { background: var(--bg-primary); border-color: var(--border-color); color: var(--text-primary); }
 
+
+.pool-total-bar .pool-total-left { font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.25rem; }

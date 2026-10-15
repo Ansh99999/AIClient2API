@@ -421,7 +421,8 @@ function getUsageStatus(percent) {
 }
 
 /**
- * 汇总多个账号的同类额度：取各账号已用百分比的平均值，重置时间取最早的一个
+ * 汇总多个账号的同类额度：把各账号的已用额度与总额度分别求和（不是平均值），重置时间取最早的一个。
+ * 每个账号的额度以 100 点计（接口只返回剩余比例），因此 20 个账号的总额度为 2000 点。
  * @param {Object[]} accounts - 含 usage.items 的实例
  * @param {string[]} ids - 需要汇总的额度 id（如 gemini-weekly）
  */
@@ -432,10 +433,16 @@ function aggregatePoolItems(accounts, ids) {
             .filter(item => item && Number.isFinite(item.percent));
         if (matches.length === 0) return null;
 
-        const percent = matches.reduce((sum, item) => sum + item.percent, 0) / matches.length;
+        const used = matches.reduce((sum, item) => sum + (Number.isFinite(item.used) ? item.used : item.percent), 0);
+        const limit = matches.reduce((sum, item) => sum + (Number.isFinite(item.limit) && item.limit > 0 ? item.limit : 100), 0);
+        const percent = limit > 0 ? Math.min(100, (used / limit) * 100) : 0;
         const resets = matches.map(item => item.resetAt).filter(Boolean).sort((a, b) => new Date(a) - new Date(b));
-        return { id, label: matches[0].label, percent, status: getUsageStatus(percent), resetAt: resets[0] || null };
+        return { id, label: matches[0].label, used, limit, count: matches.length, percent, status: getUsageStatus(percent), resetAt: resets[0] || null };
     }).filter(Boolean);
+}
+
+function formatPoolPoints(value) {
+    return Math.round(value).toLocaleString();
 }
 
 function renderPoolBars(items) {
@@ -443,8 +450,9 @@ function renderPoolBars(items) {
         <div class="pool-total-bar">
             <div class="breakdown-header-compact">
                 <span class="breakdown-name">${escapeHtml(item.label)}</span>
-                <span class="breakdown-usage">${item.percent.toFixed(1)}%</span>
+                <span class="breakdown-usage">${formatPoolPoints(item.used)} / ${formatPoolPoints(item.limit)} (${item.percent.toFixed(1)}%)</span>
             </div>
+            <div class="pool-total-left">${t('usage.pool.left', { left: formatPoolPoints(Math.max(0, item.limit - item.used)), accounts: (Math.max(0, item.limit - item.used) / 100).toFixed(1), count: item.count })}</div>
             <div class="progress-bar-small ${item.status}"><div class="progress-fill" style="width: ${item.percent}%"></div></div>
             ${item.resetAt ? `<div class="pool-total-reset"><i class="fas fa-history"></i> ${t('usage.pool.nextReset', { time: formatDate(item.resetAt) })}</div>` : ''}
         </div>
